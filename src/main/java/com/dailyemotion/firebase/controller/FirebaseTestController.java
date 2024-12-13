@@ -1,4 +1,4 @@
-package com.dailyemotion.dailyemotion;
+package com.dailyemotion.firebase.controller;
 
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;
