@@ -18,7 +18,7 @@ import java.time.LocalDate;
 
 import static com.dailyemotion.common.errorCode.DiaryErrorCode.DIARY_ALREADY_EXIST;
 import static com.dailyemotion.common.errorCode.DiaryErrorCode.INVALID_EMOTION_VALUE;
-import static com.dailyemotion.common.errorCode.UserErrorCode.USER_NOT_AUTORIZED;
+import static com.dailyemotion.common.errorCode.UserErrorCode.USER_NOT_AUTHORIZED;
 
 @Service
 @RequiredArgsConstructor
@@ -52,7 +52,7 @@ public class DiaryService {
     // OAuth2 커스터마이징 한 클래스에서 username 가져오는 메소드
     private static String getCustomOAuth2User() {
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
-            throw new UserException(USER_NOT_AUTORIZED);
+            throw new UserException(USER_NOT_AUTHORIZED);
         }
 
         CustomOAuth2User customOAuth2User = (CustomOAuth2User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
