@@ -163,7 +163,7 @@ public class DiaryServiceTest {
                 .build();
 
         // WHEN & THEN
-        assertThrows(IllegalArgumentException.class, () -> diaryService.createDiary(testDate, reqDto));
+        assertThrows(DiaryException.class, () -> diaryService.createDiary(testDate, reqDto));
     }
 
 }

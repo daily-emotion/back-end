@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 
 import static com.dailyemotion.common.errorCode.DiaryErrorCode.DIARY_ALREADY_EXIST;
+import static com.dailyemotion.common.errorCode.DiaryErrorCode.INVALID_EMOTION_VALUE;
 import static com.dailyemotion.common.errorCode.UserErrorCode.USER_NOT_AUTORIZED;
 
 @Service
@@ -35,7 +36,12 @@ public class DiaryService {
         String username = getCustomOAuth2User();
         User user = userRepository.findByUsername(username);
 
-        Diary diary = Diary.from(diaryReqDto, user, date);
+        Diary diary;
+        try {
+            diary = Diary.from(diaryReqDto, user, date);
+        } catch (IllegalArgumentException e) {
+            throw new DiaryException(INVALID_EMOTION_VALUE);
+        }
         diary.addTags(diaryReqDto.getTag());
         diaryRepository.save(diary);
 
