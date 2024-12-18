@@ -22,11 +22,4 @@ public class Tag {
     @ManyToOne
     @JoinColumn(name = "diary_id")
     private Diary diary;
-
-    public static Tag from(String tagName, Diary diary) {
-        return Tag.builder()
-                .name(tagName)
-                .diary(diary)
-                .build();
-    }
 }

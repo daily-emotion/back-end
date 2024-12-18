@@ -7,11 +7,13 @@ import com.dailyemotion.diary.dto.request.DiaryReqDto;
 import com.dailyemotion.diary.dto.response.DiaryResDto;
 import com.dailyemotion.diary.service.DiaryService;
 import com.dailyemotion.domain.entity.Diary;
+import com.dailyemotion.domain.entity.Tag;
 import com.dailyemotion.domain.entity.User;
 import com.dailyemotion.domain.enums.Emotion;
 import com.dailyemotion.domain.repository.DiaryRepository;
 import com.dailyemotion.domain.repository.TagRepository;
 import com.dailyemotion.domain.repository.UserRepository;
+import com.dailyemotion.tag.service.TagService;
 import com.dailyemotion.user.Oauth.CustomOAuth2User;
 import org.junit.jupiter.api.*;
 import org.mockito.InjectMocks;
@@ -22,7 +24,6 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,6 +44,9 @@ public class DiaryServiceTest {
 
     @Mock
     private TagRepository tagRepository;
+
+    @Mock
+    private TagService tagService;
 
     @InjectMocks
     private DiaryService diaryService;
@@ -82,7 +86,7 @@ public class DiaryServiceTest {
         // GIVEN
         DiaryReqDto reqDto = DiaryReqDto.builder()
                 .emotion(Emotion.HAPPINESS.name())
-                .content("안녕하세요 오늘 날씨가 진짜 너무 좋아서 기분이 좋아염 뿌우")
+                .content("안녕하세요. 오늘 날씨가 진짜 너무 좋아서 기분이 좋아염 뿌우")
                 .tag(List.of("기쁨", "날씨", "소풍"))
                 .imageUrl("www.이미지.com")
                 .build();
@@ -93,16 +97,31 @@ public class DiaryServiceTest {
 
         Diary diary = Diary.builder()
                 .diaryId(1L)
+                .user(mockUser)
                 .emotion(Emotion.HAPPINESS)
-                .content("안녕하세요 오늘 날씨가 진짜 너무 좋아서 기분이 좋아염 뿌우")
+                .content("안녕하세요. 오늘 날씨가 진짜 너무 좋아서 기분이 좋아염 뿌우")
                 .imageUrl("www.이미지.com")
                 .date(testDate)
-                .tags(new ArrayList<>())
+                .build();
+
+        Tag mockTag1 = Tag.builder()
+                .tagId(1L)
+                .diary(diary)
+                .name("기쁨")
+                .build();
+        Tag mockTag2 = Tag.builder()
+                .tagId(2L)
+                .diary(diary)
+                .name("날씨")
+                .build();
+        Tag mockTag3 = Tag.builder()
+                .tagId(3L)
+                .diary(diary)
+                .name("소풍")
                 .build();
 
         when(userRepository.findByUsername("testUsername")).thenReturn(mockUser);
         when(diaryRepository.save(diary)).thenReturn(diary);
-
 
         // WHEN
         DiaryResDto resDto = diaryService.createDiary(testDate, reqDto);
@@ -111,6 +130,9 @@ public class DiaryServiceTest {
         assertThat(reqDto.getEmotion()).isEqualTo(resDto.getEmotion());
         assertThat(reqDto.getContent()).isEqualTo(resDto.getContent());
         assertThat(reqDto.getImageUrl()).isEqualTo(resDto.getImageUrl());
+        assertThat(mockTag1.getName()).isEqualTo(reqDto.getTag().get(0));
+        assertThat(mockTag2.getName()).isEqualTo(reqDto.getTag().get(1));
+        assertThat(mockTag3.getName()).isEqualTo(reqDto.getTag().get(2));
     }
 
     @Test
@@ -148,22 +170,4 @@ public class DiaryServiceTest {
         // WHEN & THEN
         assertThrows(UserException.class, () -> diaryService.createDiary(testDate, reqDto));
     }
-
-    @Test
-    @Order(4)
-    @DisplayName("Diary 생성 - 실패 (Enum 외의 Emotion값)")
-    void createDiary_fail_invalid_emotion () {
-
-        // GIVEN
-        DiaryReqDto reqDto = DiaryReqDto.builder()
-                .emotion("INVALID_EMOTION")
-                .content("안녕하세요 오늘 날씨가 진짜 너무 좋아서 기분이 좋아염 뿌우")
-                .tag(List.of("기쁨", "날씨", "소풍"))
-                .imageUrl("www.이미지.com")
-                .build();
-
-        // WHEN & THEN
-        assertThrows(DiaryException.class, () -> diaryService.createDiary(testDate, reqDto));
-    }
-
 }

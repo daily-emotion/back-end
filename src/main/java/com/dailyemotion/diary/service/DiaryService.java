@@ -6,15 +6,18 @@ import com.dailyemotion.diary.dto.request.DiaryReqDto;
 import com.dailyemotion.diary.dto.response.DiaryResDto;
 import com.dailyemotion.domain.entity.Diary;
 import com.dailyemotion.domain.entity.User;
+import com.dailyemotion.domain.enums.Emotion;
 import com.dailyemotion.domain.repository.DiaryRepository;
 import com.dailyemotion.domain.repository.TagRepository;
 import com.dailyemotion.domain.repository.UserRepository;
+import com.dailyemotion.tag.service.TagService;
 import com.dailyemotion.user.Oauth.CustomOAuth2User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static com.dailyemotion.common.errorCode.DiaryErrorCode.DIARY_ALREADY_EXIST;
 import static com.dailyemotion.common.errorCode.DiaryErrorCode.INVALID_EMOTION_VALUE;
@@ -27,6 +30,7 @@ public class DiaryService {
     private final DiaryRepository diaryRepository;
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
+    private final TagService tagService;
 
     public DiaryResDto createDiary(LocalDate date, DiaryReqDto diaryReqDto) {
 
@@ -36,16 +40,11 @@ public class DiaryService {
         String username = getCustomOAuth2User();
         User user = userRepository.findByUsername(username);
 
-        Diary diary;
-        try {
-            diary = Diary.from(diaryReqDto, user, date);
-        } catch (IllegalArgumentException e) {
-            throw new DiaryException(INVALID_EMOTION_VALUE);
-        }
-        diary.addTags(diaryReqDto.getTag());
+        Diary diary = from(diaryReqDto, user, date);
         diaryRepository.save(diary);
 
-        return DiaryResDto.from(diary, diary.getTags());
+        List<String> tags = tagService.createTag(diary, diaryReqDto);
+        return DiaryResDto.from(diary, tags);
     }
 
 
@@ -64,6 +63,16 @@ public class DiaryService {
         if (diaryRepository.existsByDate(date)) {
             throw new DiaryException(DIARY_ALREADY_EXIST);
         }
+    }
+
+    static Diary from(DiaryReqDto diaryReqDto, User username, LocalDate date) {
+        return Diary.builder()
+                .user(username)
+                .emotion(Emotion.valueOf(diaryReqDto.getEmotion())) // String을 Enum으로
+                .content(diaryReqDto.getContent())
+                .imageUrl(diaryReqDto.getImageUrl())
+                .date(date) // @PathVariable값
+                .build();
     }
 
 

@@ -23,13 +23,11 @@ public class DiaryResDto {
 
     private String imageUrl;
 
-    public static DiaryResDto from(Diary diary, List<Tag> tag) {
+    public static DiaryResDto from(Diary diary, List<String> tags) {
         return DiaryResDto.builder()
                 .emotion(String.valueOf(diary.getEmotion()))
                 .content(diary.getContent())
-                .tag(tag.stream()
-                        .map(Tag::getName) // 태그 엔티티에서 태그 이름 추출
-                        .toList()) // 스트림 결과를 리스트로 반환
+                .tag(tags)
                 .imageUrl(diary.getImageUrl())
                 .build();
 
