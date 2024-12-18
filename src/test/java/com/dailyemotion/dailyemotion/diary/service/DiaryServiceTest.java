@@ -1,6 +1,7 @@
 package com.dailyemotion.dailyemotion.diary.service;
 
 import com.dailyemotion.common.errorCode.DiaryErrorCode;
+import com.dailyemotion.common.errorCode.UserErrorCode;
 import com.dailyemotion.common.exception.DiaryException;
 import com.dailyemotion.common.exception.UserException;
 import com.dailyemotion.diary.dto.request.DiaryReqDto;
@@ -27,8 +28,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -82,6 +82,7 @@ public class DiaryServiceTest {
     @Order(1)
     @DisplayName("Diary 생성 - 성공")
     void createDiary_success() {
+
 
         // GIVEN
         DiaryReqDto reqDto = DiaryReqDto.builder()
@@ -138,7 +139,7 @@ public class DiaryServiceTest {
     @Test
     @Order(2)
     @DisplayName("Diary 생성 - 실패 (이미 다이어리가 존재함)")
-    void createDiary_fail_already_exist () {
+    void createDiary_fail_already_exist() {
 
         // GIVEN
         when(diaryRepository.existsByDate(testDate)).thenReturn(true);
@@ -155,7 +156,7 @@ public class DiaryServiceTest {
     @Test
     @Order(3)
     @DisplayName("Diary 생성  - 실패 (사용자 인증 실패)")
-    void createDiary_fail_unauthorized () {
+    void createDiary_fail_unauthorized() {
 
         // GIVEN
         DiaryReqDto reqDto = DiaryReqDto.builder()
@@ -169,5 +170,80 @@ public class DiaryServiceTest {
 
         // WHEN & THEN
         assertThrows(UserException.class, () -> diaryService.createDiary(testDate, reqDto));
+    }
+
+    @Test
+    @Order(4)
+    @DisplayName("Diary 삭제 - 성공")
+    void deleteDiary_success() {
+
+        // GIVEN
+        User user = User.builder()
+                .username("testUsername")
+                .build();
+
+        Diary diary = Diary.builder()
+                .diaryId(1L)
+                .user(user)
+                .emotion(Emotion.HAPPINESS)
+                .content("안녕하세요. 오늘 날씨가 진짜 너무 좋아서 기분이 좋아염 뿌우")
+                .imageUrl("www.이미지.com")
+                .date(testDate)
+                .build();
+
+        when(userRepository.findByUsername("testUsername")).thenReturn(user);
+        when(diaryRepository.findByDate(testDate)).thenReturn(diary);
+
+        // WHEN & THEN
+        assertDoesNotThrow(() -> diaryService.deleteDiary(testDate)); // 한 번만 호출
+
+        // delete 호출 여부 검증
+        verify(diaryRepository, times(1)).delete(diary);
+
+        // findByDate가 호출되었는지 검증
+        verify(diaryRepository, times(1)).findByDate(testDate);
+    }
+
+    @Test
+    @Order(5)
+    @DisplayName("Diary 삭제 - 실패 (다이어리가 존재하지 않을 경우 예외 발생)")
+    void deleteDiary_fail_diary_not_found() {
+
+        // GIVEN
+        when(diaryRepository.findByDate(testDate)).thenReturn(null);
+
+        // WHEN & THEN
+        DiaryException exception = assertThrows(DiaryException.class, () -> diaryService.deleteDiary(testDate));
+        assertThat(exception.getErrorCode()).isEqualTo(DiaryErrorCode.DIARY_NOT_FOUND);
+    }
+
+    @Test
+    @Order(6)
+    @DisplayName("Diary 삭제 - 실패 (해당 다이어리를 작성한 사용자가 아닐 경우 예외 발생)")
+    void deleteDiary_fail_is_not_diary_owner() {
+
+        // GIVEN
+        User diaryOwner = User.builder()
+                .username("diaryOwner")
+                .build();
+
+        User loggedUser = User.builder()
+                .username("loggedUser")
+                .build();
+
+        Diary diary = Diary.builder()
+                .diaryId(1L)
+                .user(diaryOwner)
+                .emotion(Emotion.HAPPINESS)
+                .content("안녕하세요. 오늘 날씨가 진짜 너무 좋아서 기분이 좋아염 뿌우")
+                .imageUrl("www.이미지.com")
+                .date(testDate)
+                .build();
+
+        when(userRepository.findByUsername("loggedUser")).thenReturn(loggedUser);
+        when(diaryRepository.findByDate(testDate)).thenReturn(diary);
+
+        UserException exception = assertThrows(UserException.class, () -> diaryService.deleteDiary(testDate));
+        assertThat(exception.getErrorCode()).isEqualTo(UserErrorCode.USER_NOT_MATCHED);
     }
 }
