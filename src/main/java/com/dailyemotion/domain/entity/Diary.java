@@ -36,4 +36,6 @@ public class Diary extends BaseTimeEntity {
 
     private LocalDate date;
 
+    @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
+    private List<Tag> tags;
 }
