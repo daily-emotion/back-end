@@ -31,4 +31,10 @@ public class DiaryController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/{date}")
+    public ResponseEntity<DiaryResDto> getDiary(@PathVariable(name = "date") LocalDate date) {
+        DiaryResDto diaryResDto = diaryService.getDiary(date);
+        return ResponseEntity.status(HttpStatus.OK).body(diaryResDto);
+    }
+
 }

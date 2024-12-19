@@ -1,13 +1,16 @@
 package com.dailyemotion.diary.service;
 
 import com.dailyemotion.common.exception.DiaryException;
+import com.dailyemotion.common.exception.TagException;
 import com.dailyemotion.common.exception.UserException;
 import com.dailyemotion.diary.dto.request.DiaryReqDto;
 import com.dailyemotion.diary.dto.response.DiaryResDto;
 import com.dailyemotion.domain.entity.Diary;
+import com.dailyemotion.domain.entity.Tag;
 import com.dailyemotion.domain.entity.User;
 import com.dailyemotion.domain.enums.Emotion;
 import com.dailyemotion.domain.repository.DiaryRepository;
+import com.dailyemotion.domain.repository.TagRepository;
 import com.dailyemotion.domain.repository.UserRepository;
 import com.dailyemotion.tag.service.TagService;
 import com.dailyemotion.user.Oauth.CustomOAuth2User;
@@ -16,10 +19,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.dailyemotion.common.errorCode.DiaryErrorCode.DIARY_ALREADY_EXIST;
 import static com.dailyemotion.common.errorCode.DiaryErrorCode.DIARY_NOT_FOUND;
+import static com.dailyemotion.common.errorCode.TagErrorCode.TAG_NOT_FOUND;
 import static com.dailyemotion.common.errorCode.UserErrorCode.USER_NOT_AUTHORIZED;
 import static com.dailyemotion.common.errorCode.UserErrorCode.USER_NOT_MATCHED;
 
@@ -30,6 +37,7 @@ public class DiaryService {
     private final DiaryRepository diaryRepository;
     private final UserRepository userRepository;
     private final TagService tagService;
+    private final TagRepository tagRepository;
 
     public DiaryResDto createDiary(LocalDate date, DiaryReqDto diaryReqDto) {
 
@@ -54,8 +62,20 @@ public class DiaryService {
         diaryRepository.delete(diary);
     }
 
+    public DiaryResDto getDiary(LocalDate date) {
 
+        Diary diary = diaryRepository.findByDate(date);
+        getDiaryOrThrow(diary); // 다이어리가 존재하는지 확인
+        isDiaryOwner(diary); // 다이어리 주인인지 확인
 
+        // 다이어리 ID에 해당하는 태그를 조회하고 태그 이름만 리스트로 저장해서 반환
+        List<String> resTags = Optional.ofNullable( tagRepository.findTagByDiary_DiaryId(diary.getDiaryId()))
+                .orElseThrow(() -> new TagException(TAG_NOT_FOUND))
+                .stream()
+                .map(Tag::getName)
+                .collect(Collectors.toList());
+        return DiaryResDto.from(diary, resTags);
+    }
 
     // OAuth2 커스터마이징 한 클래스에서 username 가져오는 메소드
     private static String getCustomOAuth2User() {
