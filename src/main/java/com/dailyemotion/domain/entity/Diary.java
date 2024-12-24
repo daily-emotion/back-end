@@ -7,7 +7,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Getter
@@ -33,5 +34,8 @@ public class Diary extends BaseTimeEntity {
 
     private String tag;
 
-    private LocalDateTime date;
+    private LocalDate date;
+
+    @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
+    private List<Tag> tags;
 }
