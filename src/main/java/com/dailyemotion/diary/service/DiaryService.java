@@ -20,7 +20,9 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static com.dailyemotion.common.errorCode.DiaryErrorCode.DIARY_ALREADY_EXIST;
+import static com.dailyemotion.common.errorCode.DiaryErrorCode.DIARY_NOT_FOUND;
 import static com.dailyemotion.common.errorCode.UserErrorCode.USER_NOT_AUTHORIZED;
+import static com.dailyemotion.common.errorCode.UserErrorCode.USER_NOT_MATCHED;
 
 
 @Service
@@ -45,6 +47,15 @@ public class DiaryService {
 
         List<String> tags = tagService.createTag(diary, diaryReqDto);
         return DiaryResDto.from(diary, tags);
+    }
+
+    // Diary 삭제
+    public void deleteDiary(LocalDate date) {
+
+        Diary diary = diaryRepository.findByDate(date);
+        getDiaryOrThrow(diary); // 다이어리가 존재하는지 확인
+        isDiaryOwner(diary); // 다이어리 주인인지 확인
+        diaryRepository.delete(diary);
     }
 
     // OAuth2 커스터마이징 한 클래스에서 username 가져오는 메소드
@@ -73,5 +84,21 @@ public class DiaryService {
                 .imageUrl(diaryReqDto.getImageUrl())
                 .date(date) // @PathVariable값
                 .build();
+    }
+
+    // 해당 다이어리를 작성한 유저가 현재 로그인한 유저와 일치하는지 확인하는 메소드
+    private void isDiaryOwner (Diary diary) {
+        String username = getCustomOAuth2User();
+        String diaryUsername = diary.getUser().getUsername();
+
+        if (!username.equals(diaryUsername)) {
+            throw new UserException(USER_NOT_MATCHED);
+        }
+    }
+    // 다이어리가 존재하지 않을 경우 예외를 던지는 메소드
+    private void getDiaryOrThrow (Diary diary) {
+        if (diary == null) {
+            throw new DiaryException(DIARY_NOT_FOUND);
+        }
     }
 }

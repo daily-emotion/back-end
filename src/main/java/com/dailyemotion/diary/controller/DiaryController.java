@@ -23,4 +23,10 @@ public class DiaryController {
         DiaryResDto diaryResDto = diaryService.createDiary(date, diaryReqDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(diaryResDto);
     }
+
+    @DeleteMapping("/{date}")
+    public ResponseEntity<Void> deleteDiary(@PathVariable(name = "date") LocalDate date) {
+        diaryService.deleteDiary(date);
+        return ResponseEntity.noContent().build();
+    }
 }
