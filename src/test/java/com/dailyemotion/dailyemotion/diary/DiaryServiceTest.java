@@ -3,6 +3,7 @@ package com.dailyemotion.dailyemotion.diary;
 import com.dailyemotion.common.errorCode.DiaryErrorCode;
 import com.dailyemotion.common.errorCode.UserErrorCode;
 import com.dailyemotion.common.exception.DiaryException;
+import com.dailyemotion.common.exception.TagException;
 import com.dailyemotion.common.exception.UserException;
 import com.dailyemotion.diary.dto.request.DiaryReqDto;
 import com.dailyemotion.diary.dto.response.DiaryResDto;
@@ -245,5 +246,89 @@ public class DiaryServiceTest {
 
         UserException exception = assertThrows(UserException.class, () -> diaryService.deleteDiary(date));
         assertThat(exception.getErrorCode()).isEqualTo(UserErrorCode.USER_NOT_MATCHED);
+    }
+
+    @Test
+    @Order(7)
+    @DisplayName("Diary 조회 - 성공")
+    void getDiary_success() {
+
+        // given
+        User user = User.builder()
+                .username("testUsername")
+                .build();
+
+        Diary diary = Diary.builder()
+                .diaryId(1L)
+                .user(user)
+                .emotion(Emotion.HAPPINESS)
+                .content("안녕하세요. 오늘 날씨가 진짜 너무 좋아서 기분이 좋아염 뿌우")
+                .imageUrl("www.이미지.com")
+                .date(date)
+                .build();
+
+        List<Tag> tags = List.of(
+                Tag.builder().name("기쁨").build(),
+                Tag.builder().name("날씨").build(),
+                Tag.builder().name("소풍").build()
+        );
+
+        List<String> expectedTags = tags.stream()
+                .map(Tag::getName)
+                .toList();
+
+        when(userRepository.findByUsername("testUsername")).thenReturn(user);
+        when(diaryRepository.findByDate(date)).thenReturn(diary);
+        when(tagRepository.findTagByDiary_DiaryId(diary.getDiaryId())).thenReturn(tags);
+
+        // when
+        DiaryResDto resDto = diaryService.getDiary(date);
+
+        // then
+        assertThat(diary.getEmotion().name()).isEqualTo(resDto.getEmotion());
+        assertThat(diary.getContent()).isEqualTo(resDto.getContent());
+        assertThat(diary.getImageUrl()).isEqualTo(resDto.getImageUrl());
+        assertThat(resDto.getTag()).isEqualTo(expectedTags); // 태그 검증
+    }
+
+    @Test
+    @Order(8)
+    @DisplayName("Diary 조회 - 실패 (해당 날짜에 다이어리가 존재하지 않는 경우)")
+    void getDiary_fail_diary_not_found() {
+
+        // given
+        when(diaryRepository.findByDate(date)).thenReturn(null);
+
+        // when & then
+        DiaryException exception = assertThrows(DiaryException.class, () -> diaryService.getDiary(date));
+        assertThat(exception.getErrorCode()).isEqualTo(DiaryErrorCode.DIARY_NOT_FOUND);
+
+    }
+
+    @Test
+    @Order(9)
+    @DisplayName("Diary 조회 - 실패 (다이어리에 태그가 존재하지 않는 경우")
+    void getDiary_fail_tag_not_found() {
+
+        // given
+
+        User user = User.builder()
+                .username("testUsername")
+                .build();
+
+        Diary diary = Diary.builder()
+                .diaryId(1L)
+                .user(user)
+                .emotion(Emotion.HAPPINESS)
+                .content("안녕하세요. 오늘 날씨가 진짜 너무 좋아서 기분이 좋아염 뿌우")
+                .imageUrl("www.이미지.com")
+                .date(date)
+                .build();
+
+        when(diaryRepository.findByDate(date)).thenReturn(diary);
+        when(tagRepository.findTagByDiary_DiaryId(diary.getDiaryId())).thenReturn(null);
+
+        // when & then
+        assertThrows(TagException.class, () -> diaryService.getDiary(date));
     }
 }
