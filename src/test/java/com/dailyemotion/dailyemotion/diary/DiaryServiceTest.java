@@ -331,4 +331,87 @@ public class DiaryServiceTest {
         // when & then
         assertThrows(TagException.class, () -> diaryService.getDiary(date));
     }
+
+    @Test
+    @Order(10)
+    @DisplayName("Diary 수정 - 성공")
+    void updateDiary_success() {
+
+        // given
+        DiaryReqDto reqDto = DiaryReqDto.builder()
+                .emotion(Emotion.SADNESS.name())
+                .content("오늘은 날씨가 흐려서 기분이 우울하네요.")
+                .tag(List.of("우울", "날씨", "비"))
+                .imageUrl("www.업데이트된이미지.com")
+                .build();
+
+        User mockUser = User.builder()
+                .username("testUsername")
+                .build();
+
+        Diary existingDiary = Diary.builder()
+                .diaryId(1L)
+                .user(mockUser)
+                .emotion(Emotion.HAPPINESS)
+                .content("안녕하세요. 오늘 날씨가 진짜 너무 좋아서 기분이 좋아염 뿌우")
+                .imageUrl("www.이미지.com")
+                .date(date)
+                .build();
+
+        Tag existingTag1 = Tag.builder()
+                .tagId(1L)
+                .diary(existingDiary)
+                .name("기쁨")
+                .build();
+        Tag existingTag2 = Tag.builder()
+                .tagId(2L)
+                .diary(existingDiary)
+                .name("날씨")
+                .build();
+        Tag existingTag3 = Tag.builder()
+                .tagId(3L)
+                .diary(existingDiary)
+                .name("소풍")
+                .build();
+
+        Diary updatedDiary = Diary.builder()
+                .diaryId(1L)
+                .user(mockUser)
+                .emotion(Emotion.SADNESS)
+                .content("오늘은 날씨가 흐려서 기분이 우울하네요.")
+                .imageUrl("www.업데이트된이미지.com")
+                .date(date)
+                .build();
+
+        Tag newTag1 = Tag.builder()
+                .tagId(4L)
+                .diary(updatedDiary)
+                .name("우울")
+                .build();
+        Tag newTag2 = Tag.builder()
+                .tagId(5L)
+                .diary(updatedDiary)
+                .name("날씨")
+                .build();
+        Tag newTag3 = Tag.builder()
+                .tagId(6L)
+                .diary(updatedDiary)
+                .name("비")
+                .build();
+
+        when(userRepository.findByUsername("testUsername")).thenReturn(mockUser);
+        when(diaryRepository.findByDate(date)).thenReturn(existingDiary);
+        when(diaryRepository.save(existingDiary)).thenReturn(updatedDiary);
+        when(tagService.createTag(existingDiary, reqDto)).thenReturn(reqDto.getTag());
+
+        // when
+        DiaryResDto resDto = diaryService.updateDiary(date, reqDto);
+
+        // then
+        assertThat(resDto.getEmotion()).isEqualTo(reqDto.getEmotion());
+        assertThat(resDto.getContent()).isEqualTo(reqDto.getContent());
+        assertThat(resDto.getImageUrl()).isEqualTo(reqDto.getImageUrl());
+        assertThat(resDto.getTag()).containsExactly("우울", "날씨", "비");
+
+    }
 }
