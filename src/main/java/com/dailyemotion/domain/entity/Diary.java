@@ -38,4 +38,10 @@ public class Diary extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
     private List<Tag> tags;
+
+    public void updateFrom(Diary updatedDiary) {
+        this.emotion = updatedDiary.getEmotion();
+        this.content = updatedDiary.getContent();
+        this.imageUrl = updatedDiary.getImageUrl();
+    }
 }

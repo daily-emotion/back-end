@@ -35,4 +35,11 @@ public class DiaryController {
         DiaryResDto diaryResDto = diaryService.getDiary(date);
         return ResponseEntity.status(HttpStatus.OK).body(diaryResDto);
     }
+
+    @PutMapping("/{date}")
+    public ResponseEntity<DiaryResDto> updateDiary(@PathVariable(name = "date") LocalDate date,
+                                                   @RequestBody DiaryReqDto diaryReqDto) {
+        DiaryResDto diaryResDto = diaryService.updateDiary(date, diaryReqDto);
+        return ResponseEntity.status(HttpStatus.OK).body(diaryResDto);
+    }
 }

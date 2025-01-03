@@ -89,6 +89,26 @@ public class DiaryService {
         return DiaryResDto.from(diary, resTags);
     }
 
+    // Diary 수정
+    public DiaryResDto updateDiary(LocalDate date, DiaryReqDto diaryReqDto) {
+
+        Diary diary = diaryRepository.findByDate(date);
+        getDiaryOrThrow(diary); // 다이어리가 존재하는지 확인
+        isDiaryOwner(diary); // 다이어리 주인인지 확인
+        String username = getCustomOAuth2User();
+        User user = userRepository.findByUsername(username);
+
+        Diary updatedDiary = from(diaryReqDto, user, date);
+        diary.updateFrom(updatedDiary);
+        diaryRepository.save(diary);
+
+        tagRepository.deleteAllByDiary(diary);
+        tagService.createTag(diary, diaryReqDto);
+
+        List<String> tags = diaryReqDto.getTag();
+        return DiaryResDto.from(diary, tags);
+    }
+
     // 다이어리 생성 시 이미 작성한 다이어리가 존재하는지 확인하는 메소드
     private void validateDiaryCreation(LocalDate date) {
         if (diaryRepository.existsByDate(date)) {
