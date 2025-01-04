@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * JWT 토큰 기반의 인증을 처리하는 필터
+ * JWT 토큰 기반의 인증을 처리하는 Filter
  * 모든 HTTP 요청에 대해 JWT 토큰을 검증하고 인증 정보를 설정
  */
 @RequiredArgsConstructor

@@ -22,7 +22,7 @@ public class JWTUtil {
     private final JwtParser jwtParser;
 
     /**
-     * JWT 유틸리티 클래스를 초기화
+     * JWT Utility 클래스를 초기화
      * 주어진 시크릿 키를 사용하여 JWT 서명 및 파싱에 사용할 키를 생성
      *
      * @param secret JWT 서명에 사용할 시크릿 키 값
