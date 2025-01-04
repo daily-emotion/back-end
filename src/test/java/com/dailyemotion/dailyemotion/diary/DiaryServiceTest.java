@@ -16,7 +16,7 @@ import com.dailyemotion.domain.repository.DiaryRepository;
 import com.dailyemotion.domain.repository.TagRepository;
 import com.dailyemotion.domain.repository.UserRepository;
 import com.dailyemotion.tag.service.TagService;
-import com.dailyemotion.user.Oauth.CustomOAuth2User;
+import com.dailyemotion.user.oAuth2.CustomOAuth2User;
 import org.junit.jupiter.api.*;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
