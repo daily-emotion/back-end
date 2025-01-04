@@ -1,3 +1,9 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  application:
+    name: daily-emotion
+
 server:
   servlet:
     context-path: /api
@@ -5,3 +11,8 @@ server:
 firebase:
   config:
     path: firebaseServiceAccountKey.json
+
+jwt:
+  secret: ${JWT_SECRET}
+  accessExpiration: ${JWT_ACCESS_EXPIRATION}
+  refreshExpiration: ${JWT_REFRESH_EXPIRATION}
