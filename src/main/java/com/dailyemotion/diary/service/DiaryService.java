@@ -4,6 +4,7 @@ import com.dailyemotion.common.exception.DiaryException;
 import com.dailyemotion.common.exception.TagException;
 import com.dailyemotion.common.exception.UserException;
 import com.dailyemotion.diary.dto.request.DiaryReqDto;
+import com.dailyemotion.diary.dto.response.DiaryGetResDto;
 import com.dailyemotion.diary.dto.response.DiaryResDto;
 import com.dailyemotion.domain.entity.Diary;
 import com.dailyemotion.domain.entity.Tag;
@@ -19,12 +20,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.dailyemotion.common.errorCode.DiaryErrorCode.DIARY_ALREADY_EXIST;
-import static com.dailyemotion.common.errorCode.DiaryErrorCode.DIARY_NOT_FOUND;
+import static com.dailyemotion.common.errorCode.DiaryErrorCode.*;
 import static com.dailyemotion.common.errorCode.TagErrorCode.TAG_NOT_FOUND;
 import static com.dailyemotion.common.errorCode.UserErrorCode.USER_NOT_AUTHORIZED;
 import static com.dailyemotion.common.errorCode.UserErrorCode.USER_NOT_MATCHED;
@@ -109,6 +111,28 @@ public class DiaryService {
         return DiaryResDto.from(diary, tags);
     }
 
+    public List<DiaryGetResDto> getMonthlyDiary(String month) {
+
+        // month 형식이 "yyyyMM"로 6자리인지 검증
+        invalidMonth(month);
+        // 시작 날짜: yyyyMM + 01
+        LocalDate startDate = LocalDate.parse(month + "01", DateTimeFormatter.ofPattern("yyyyMMdd"));
+        // 종료 날짜: 해당 월의 마지막 날
+        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+
+        // 범위 쿼리 실행 후 DTO 변환
+        List<Diary> diaries = diaryRepository.findByDateBetween(startDate, endDate);
+
+        // 데이터가 없을 경우 빈 리스트 반환
+        if (diaries.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return diaries.stream()
+                .map(DiaryGetResDto::from)
+                .collect(Collectors.toList());
+    }
+
     // 다이어리 생성 시 이미 작성한 다이어리가 존재하는지 확인하는 메소드
     private void validateDiaryCreation(LocalDate date) {
         if (diaryRepository.existsByDate(date)) {
@@ -140,6 +164,12 @@ public class DiaryService {
     private void getDiaryOrThrow (Diary diary) {
         if (diary == null) {
             throw new DiaryException(DIARY_NOT_FOUND);
+        }
+    }
+
+    private void invalidMonth(String month) {
+        if (month == null || month.length() != 6) {
+            throw new DiaryException(INVALID_MONTH_DATE_FORMAT);
         }
     }
 }

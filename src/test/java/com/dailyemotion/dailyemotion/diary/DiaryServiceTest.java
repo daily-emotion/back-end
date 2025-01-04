@@ -6,6 +6,7 @@ import com.dailyemotion.common.exception.DiaryException;
 import com.dailyemotion.common.exception.TagException;
 import com.dailyemotion.common.exception.UserException;
 import com.dailyemotion.diary.dto.request.DiaryReqDto;
+import com.dailyemotion.diary.dto.response.DiaryGetResDto;
 import com.dailyemotion.diary.dto.response.DiaryResDto;
 import com.dailyemotion.diary.service.DiaryService;
 import com.dailyemotion.domain.entity.Diary;
@@ -26,8 +27,11 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
+import static com.dailyemotion.common.errorCode.DiaryErrorCode.INVALID_MONTH_DATE_FORMAT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -413,5 +417,86 @@ public class DiaryServiceTest {
         assertThat(resDto.getImageUrl()).isEqualTo(reqDto.getImageUrl());
         assertThat(resDto.getTag()).containsExactly("우울", "날씨", "비");
 
+    }
+
+    @Test
+    @Order(11)
+    @DisplayName("Diary 조회(월간) - 성공")
+    void getMonthlyDiary_success() {
+
+        // given
+        LocalDate date1 = LocalDate.of(2025, 1, 1);
+        LocalDate date2 = LocalDate.of(2025, 1, 5);
+        LocalDate date3 = LocalDate.of(2025, 1, 31);
+
+        Diary diary1 = Diary.builder().diaryId(1L).date(date1).emotion(Emotion.HAPPINESS).build();
+        Diary diary2 = Diary.builder().diaryId(2L).date(date2).emotion(Emotion.SADNESS).build();
+        Diary diary3 = Diary.builder().diaryId(3L).date(date3).emotion(Emotion.ANGER).build();
+
+        LocalDate startDate = LocalDate.of(2025, 1, 1);
+        LocalDate endDate = LocalDate.of(2025, 1, 31);
+        List<Diary> diaryList = Arrays.asList(diary1, diary2, diary3);
+
+        when(diaryRepository.findByDateBetween(startDate, endDate)).thenReturn(diaryList);
+
+        // when
+        List<DiaryGetResDto> result = diaryService.getMonthlyDiary("202501");
+
+        // then
+        assertThat(result).hasSize(3); // 리스트 크기 검증
+
+        assertThat(result.get(0).getEmotion()).isEqualTo(Emotion.HAPPINESS.name());
+        assertThat(result.get(0).getDate()).isEqualTo(LocalDate.of(2025, 1, 1));
+
+        assertThat(result.get(1).getEmotion()).isEqualTo(Emotion.SADNESS.name());
+        assertThat(result.get(1).getDate()).isEqualTo(LocalDate.of(2025, 1, 5));
+
+        assertThat(result.get(2).getEmotion()).isEqualTo(Emotion.ANGER.name());
+        assertThat(result.get(2).getDate()).isEqualTo(LocalDate.of(2025, 1, 31));
+
+    }
+
+    @Test
+    @Order(12)
+    @DisplayName("Diary 조회(월간) - 성공 (해당 월에 데이터가 없는 경우)")
+    void getMonthlyDiary_fail_diary_not_found() {
+
+        // given
+        LocalDate startDate = LocalDate.of(2025, 1, 1);
+        LocalDate endDate = LocalDate.of(2025, 1, 31);
+
+        when(diaryRepository.findByDateBetween(startDate, endDate)).thenReturn(Collections.emptyList());
+
+        // when
+        List<DiaryGetResDto> result = diaryService.getMonthlyDiary("202502");
+
+        // then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @Order(13)
+    @DisplayName("Diary 조회(월간) - 실패 (month가 6자리가 아닌 경우)")
+    void getMonthlyDiary_fail_invalid_month_format() {
+
+        // given
+        String month = "2025";
+
+        // when & then
+        DiaryException exception = assertThrows(DiaryException.class, () -> diaryService.getMonthlyDiary(month));
+        assertThat(exception.getErrorCode()).isEqualTo(INVALID_MONTH_DATE_FORMAT);
+    }
+
+    @Test
+    @Order(14)
+    @DisplayName("Diary 조회(월간) - 실패 (month가 null일 때)")
+    void getMonthlyDiary_fail_null_month_format() {
+
+        // given
+        String month = null;
+
+        // when & then
+        DiaryException exception = assertThrows(DiaryException.class, () -> diaryService.getMonthlyDiary(month));
+        assertThat(exception.getErrorCode()).isEqualTo(INVALID_MONTH_DATE_FORMAT);
     }
 }
