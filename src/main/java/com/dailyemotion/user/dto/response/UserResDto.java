@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder (toBuilder = true)
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserResDto {
@@ -16,14 +16,11 @@ public class UserResDto {
     private Long userId;
     private String username;
     private String name;
-    private String email;
     private Role role;
     private SocialType socialType;
 
-    public UserResDto(String username, String name, String email, Role role, SocialType socialType) {
+    public UserResDto(String username, String name) {
         this.username = username;
         this.name = name;
-        this.role = role;
-        this.socialType = socialType;
     }
 }

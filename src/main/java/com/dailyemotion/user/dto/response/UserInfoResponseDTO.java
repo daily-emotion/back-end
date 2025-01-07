@@ -11,5 +11,4 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserInfoResponseDTO {
     private String name;
-    private String role;
 }
