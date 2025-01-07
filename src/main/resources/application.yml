@@ -28,4 +28,4 @@ firebase:
 jwt:
   secret: ${JWT_SECRET}
   accessExpiration: ${JWT_ACCESS_EXPIRATION}
-  refreshExpiration: ${JWT_REFRESH_EXPIRATION}
+  refreshExpiration: ${JWT_REFRESH_EX
