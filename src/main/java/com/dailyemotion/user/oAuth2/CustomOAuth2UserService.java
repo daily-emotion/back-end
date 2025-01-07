@@ -5,10 +5,7 @@ import com.dailyemotion.domain.enums.Role;
 import com.dailyemotion.domain.enums.SocialType;
 import com.dailyemotion.domain.repository.UserRepository;
 import com.dailyemotion.user.dto.request.UserReqDto;
-import com.dailyemotion.user.dto.response.KakaoResponse;
-import com.dailyemotion.user.dto.response.NaverResponse;
-import com.dailyemotion.user.dto.response.OAuth2Response;
-import com.dailyemotion.user.dto.response.UserResDto;
+import com.dailyemotion.user.dto.response.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -17,6 +14,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -26,75 +24,115 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
 
+    /**
+     * OAuth2 인증 과정에서 유저 정보를 불러오고 처리하는 메소드
+     * DefaultOAuth2UserService의 loadUser를 오버라이드하여 소셜 로그인 후 사용자 정보를 처리
+     *
+     * @param userRequest OAuth2 인증 요청 정보를 담고 있는 객체
+     * @return 인증된 사용자 정보를 담고 있는 OAuth2User 객체
+     * @throws OAuth2AuthenticationException 인증 과정에서 오류가 발생한 경우
+     */
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-
         OAuth2User oAuth2User = super.loadUser(userRequest);
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
-        OAuth2Response oAuth2Response;
 
-        SocialType socialType;
-        if (registrationId.equals("naver")) {
-            oAuth2Response = new NaverResponse(oAuth2User.getAttributes());
-            socialType = SocialType.NAVER;
-        }
-        else if (registrationId.equals("kakao")) {
-            oAuth2Response = new KakaoResponse(oAuth2User.getAttributes());
-            socialType = SocialType.KAKAO;
-        }
-        else {
-
+        OAuth2Response oAuth2Response = getOAuth2Response(oAuth2User.getAttributes(), registrationId);
+        if (oAuth2Response == null) {
             return null;
         }
 
-        String username = oAuth2Response.getProvider()+" "+oAuth2Response.getProviderId();
+        String username = oAuth2Response.getProvider() + " " + oAuth2Response.getProviderId();
         Optional<User> optionalUser = userRepository.findByUsername(username);
 
+        return optionalUser.map(user -> updateExistingUser(user, oAuth2Response))
+                .orElseGet(() -> createNewUser(username, oAuth2Response));
+    }
 
-        if (optionalUser.isEmpty()) {
-
-            // 기존 회원이 없으면 DB에 저장
-            UserReqDto userRequestDTO = UserReqDto.builder()
-                    .username(username)
-                    .name(oAuth2Response.getName())
-                    .role(Role.USER)
-                    .socialType(socialType)
-                    .build();
-
-            // DTO를 User 객체로 변환
-            User user = userRequestDTO.toEntity();
-            userRepository.save(user);
-
-            // CustomOAuth2User 객체로 변환해서 return
-            UserResDto userResponseDTO = UserResDto.builder()
-                    .username(username)
-                    .email(oAuth2Response.getEmail())
-                    .name(oAuth2Response.getName())
-                    .role(Role.USER)
-                    .socialType(socialType)
-                    .build();
-
-            log.debug("Created UserResponseDTO - username: {}, name: {}, email: {}",
-                    userResponseDTO.getUsername(),
-                    userResponseDTO.getName(),
-
-
-            CustomOAuth2User customOAuth2User = new CustomOAuth2User(userResponseDTO);
-            log.debug("Created CustomOAuth2User - name: {}", customOAuth2User.getName());
-
-            return new CustomOAuth2User(userResponseDTO);
-
+    /**
+     * 소셜 로그인 제공자(Provider)별로 적절한 OAuth2Response 객체를 생성.
+     * 각 소셜 로그인 제공자(네이버, 카카오, 구글)의 응답 형식에 맞는 객체를 반환
+     *
+     * @param attributes 소셜 로그인 제공자로부터 받은 사용자 속성 정보
+     * @param registrationId 소셜 로그인 제공자 식별자
+     * @return 제공자별로 파싱된 OAuth2Response 객체, 지원하지 않는 제공자인 경우 null
+     */
+    private OAuth2Response getOAuth2Response(Map<String, Object> attributes, String registrationId) {
+        switch (registrationId) {
+            case "naver":
+                return new NaverResponse(attributes);
+            case "kakao":
+                return new KakaoResponse(attributes);
+            case "google":
+                return new GoogleResponse(attributes);
+            default:
+                log.warn("Unsupported registrationId: {}", registrationId);
+                return null;
         }
-        else {
-            // 이미 회원이 존재하는 경우
-            User existUser = optionalUser.get();
+    }
 
-            existUser.updateFromDTO(new UserResDto(oAuth2Response.getEmail(), oAuth2Response.getName()));
+    /**
+     * 새로운 사용자를 생성하고 데이터베이스에 저장
+     * 소셜 로그인을 통해 처음 접근한 사용자의 경우 이 메소드를 통해 회원가입이 진행
+     *
+     * @param username 고유한 사용자 식별자 (제공자_ID 형식)
+     * @param oAuth2Response 소셜 로그인 제공자로부터 받은 사용자 정보
+     * @return 생성된 사용자 정보를 담고 있는 CustomOAuth2User 객체
+     */
+    private CustomOAuth2User createNewUser(String username, OAuth2Response oAuth2Response) {
+        SocialType socialType = SocialType.valueOf(oAuth2Response.getProvider().toUpperCase());
 
-            userRepository.save(existUser); // 기존 엔티티 업데이트
+        UserReqDto userRequestDto = UserReqDto.builder()
+                .username(username)
+                .name(oAuth2Response.getName())
+                .role(Role.USER)
+                .socialType(socialType)
+                .build();
 
-            UserResDto userResponseDTO = new UserResDto(username, oAuth2Response.getName(), oAuth2Response.getEmail(), Role.TEACHER, socialType);
-            return new CustomOAuth2User(userResponseDTO);
-        }
+        User user = userRequestDto.toEntity();
+        userRepository.save(user);
+
+        UserResDto userResponseDto = createUserResponseDto(username, oAuth2Response, socialType);
+        log.debug("Created new user: {}", userResponseDto);
+
+        return new CustomOAuth2User(userResponseDto);
+    }
+
+    /**
+     * 기존 사용자의 정보를 업데이트
+     * 이미 가입된 사용자가 다시 소셜 로그인을 할 경우, 최신 정보로 업데이트
+     *
+     * @param user 데이터베이스에서 찾은 기존 사용자 엔티티
+     * @param oAuth2Response 소셜 로그인 제공자로부터 받은 최신 사용자 정보
+     * @return 업데이트된 사용자 정보를 담고 있는 CustomOAuth2User 객체
+     */
+    private CustomOAuth2User updateExistingUser(User user, OAuth2Response oAuth2Response) {
+        user.updateFromDTO(UserResDto.builder()
+                .name(oAuth2Response.getName())
+                .build());
+        userRepository.save(user);
+
+        UserResDto userResponseDto = createUserResponseDto(user.getUsername(), oAuth2Response, user.getSocialType());
+        log.debug("Updated existing user: {}", userResponseDto);
+
+        return new CustomOAuth2User(userResponseDto);
+    }
+
+    /**
+     * 사용자 응답 DTO를 생성
+     * 클라이언트에게 전달할 사용자 정보를 일관된 형식으로 생성
+     *
+     * @param username 사용자 식별자
+     * @param oAuth2Response 소셜 로그인 제공자로부터 받은 사용자 정보
+     * @param socialType 소셜 로그인 제공자 타입
+     * @return 클라이언트에게 전달할 형식의 UserResDto 객체
+     */
+    private UserResDto createUserResponseDto(String username, OAuth2Response oAuth2Response, SocialType socialType) {
+        return UserResDto.builder()
+                .username(username)
+                .name(oAuth2Response.getName())
+                .role(Role.USER)
+                .socialType(socialType)
+                .build();
     }
 }
