@@ -28,8 +28,7 @@ import java.util.stream.Collectors;
 
 import static com.dailyemotion.common.errorCode.DiaryErrorCode.*;
 import static com.dailyemotion.common.errorCode.TagErrorCode.TAG_NOT_FOUND;
-import static com.dailyemotion.common.errorCode.UserErrorCode.USER_NOT_AUTHORIZED;
-import static com.dailyemotion.common.errorCode.UserErrorCode.USER_NOT_MATCHED;
+import static com.dailyemotion.common.errorCode.UserErrorCode.*;
 
 
 @Service
@@ -47,9 +46,9 @@ public class DiaryService {
 
         // 현재 로그인한 유저
         String username = getCustomOAuth2User();
-        User user = userRepository.findByUsername(username);
+        Optional<User> user = userRepository.findByUsername(username);
 
-        Diary diary = from(diaryReqDto, user, date);
+        Diary diary = from(diaryReqDto, user.orElseThrow(() -> new UserException(USER_NOT_FOUND)), date);
         diaryRepository.save(diary);
 
         List<String> tags = tagService.createTag(diary, diaryReqDto);
@@ -98,9 +97,9 @@ public class DiaryService {
         getDiaryOrThrow(diary); // 다이어리가 존재하는지 확인
         isDiaryOwner(diary); // 다이어리 주인인지 확인
         String username = getCustomOAuth2User();
-        User user = userRepository.findByUsername(username);
+        Optional<User> user = userRepository.findByUsername(username);
 
-        Diary updatedDiary = from(diaryReqDto, user, date);
+        Diary updatedDiary = from(diaryReqDto, user.orElse(null), date);
         diary.updateFrom(updatedDiary);
         diaryRepository.save(diary);
 

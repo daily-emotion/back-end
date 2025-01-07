@@ -2,6 +2,7 @@ package com.dailyemotion.domain.entity;
 
 import com.dailyemotion.domain.enums.Role;
 import com.dailyemotion.domain.enums.SocialType;
+import com.dailyemotion.user.dto.response.UserResDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,4 +30,11 @@ public class User extends BaseTimeEntity{
     @Enumerated(EnumType.STRING)
     private Role role;
 
+
+    //사용자 정보 업데이트
+    public void updateFromDTO(UserResDto userResDto) {
+        if (userResDto != null && userResDto.getName() != null) {
+            this.name = userResDto.getName();
+        }
+    }
 }

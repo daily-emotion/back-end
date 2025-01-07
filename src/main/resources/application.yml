@@ -1,8 +1,21 @@
 spring:
   config:
-    import: optional:file:.env[.properties]
+    import:
+      - optional:file:env/common.env
+      - optional:file:env/dev.env[dev]
+      - optional:file:env/prod.env[prod]
   application:
     name: daily-emotion
+  profiles:
+    group:
+      dev:
+        - oauth
+      prod:
+        - oauth
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
 
 server:
   servlet:
@@ -15,4 +28,4 @@ firebase:
 jwt:
   secret: ${JWT_SECRET}
   accessExpiration: ${JWT_ACCESS_EXPIRATION}
-  refreshExpiration: ${JWT_REFRESH_EXPIRATION}
+  refreshExpiration: ${JWT_REFRESH_EX

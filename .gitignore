@@ -40,4 +40,4 @@ out/
 firebaseServiceAccountKey.json
 
 # .env
-dev.env
+env/*
