@@ -1,5 +1,6 @@
 package com.dailyemotion.user.service;
 
+import com.dailyemotion.common.errorCode.UserErrorCode;
 import com.dailyemotion.common.exception.UserException;
 import com.dailyemotion.domain.entity.User;
 import com.dailyemotion.domain.enums.Role;
@@ -15,7 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import static com.google.firebase.auth.AuthErrorCode.USER_NOT_FOUND;
+import static com.dailyemotion.common.errorCode.UserErrorCode.TOKEN_IS_NOT_VALID;
 
 @Slf4j
 @Service
@@ -33,7 +34,7 @@ public class UserService {
     public TokenResponseDTO refreshToken(String refreshToken) {
         // 리프레시 토큰 검증
         if (!jwtUtil.isValidToken(refreshToken)) {
-//            throw new UserException(TOKEN_IS_NOT_VALID);
+            throw new UserException(TOKEN_IS_NOT_VALID);
         }
 
         // 리프레시 토큰에서 사용자 정보 추출
@@ -41,7 +42,7 @@ public class UserService {
 
         // DB에서 사용자 정보 조회
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+                .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
 
         // 새로운 엑세스 토큰 생성
         String newAccessToken = jwtUtil.createAccessToken(
