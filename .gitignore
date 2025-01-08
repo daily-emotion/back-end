@@ -41,3 +41,6 @@ firebaseServiceAccountKey.json
 
 # .env
 env/*
+
+# db
+db/
