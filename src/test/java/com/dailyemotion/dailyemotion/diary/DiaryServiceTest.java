@@ -98,9 +98,9 @@ public class DiaryServiceTest {
                 .imageUrl("www.이미지.com")
                 .build();
 
-        Optional<User> mockUser = Optional.ofNullable(User.builder()
+        User mockUser = User.builder()
                 .username("testUsername")
-                .build());
+                .build();
 
         Diary diary = Diary.builder()
                 .diaryId(1L)
@@ -127,7 +127,7 @@ public class DiaryServiceTest {
                 .name("소풍")
                 .build();
 
-        when(userRepository.findByUsername("testUsername")).thenReturn(mockUser);
+        when(userRepository.findByUsername("testUsername")).thenReturn(Optional.of(mockUser));
         when(diaryRepository.save(diary)).thenReturn(diary);
 
         // when
@@ -197,7 +197,7 @@ public class DiaryServiceTest {
                 .date(date)
                 .build();
 
-        when(userRepository.findByUsername("testUsername")).thenReturn(user);
+        when(userRepository.findByUsername("testUsername")).thenReturn(Optional.of(user));
         when(diaryRepository.findByDate(date)).thenReturn(diary);
 
         // when & then
@@ -233,7 +233,7 @@ public class DiaryServiceTest {
                 .username("diaryOwner")
                 .build();
 
-        User loggedUser = User.builder()
+        User user = User.builder()
                 .username("loggedUser")
                 .build();
 
@@ -246,7 +246,7 @@ public class DiaryServiceTest {
                 .date(date)
                 .build();
 
-        when(userRepository.findByUsername("loggedUser")).thenReturn(loggedUser);
+        when(userRepository.findByUsername("testUsername")).thenReturn(Optional.of(user));
         when(diaryRepository.findByDate(date)).thenReturn(diary);
 
         UserException exception = assertThrows(UserException.class, () -> diaryService.deleteDiary(date));
@@ -282,7 +282,7 @@ public class DiaryServiceTest {
                 .map(Tag::getName)
                 .toList();
 
-        when(userRepository.findByUsername("testUsername")).thenReturn(user);
+        when(userRepository.findByUsername("testUsername")).thenReturn(Optional.of(user));
         when(diaryRepository.findByDate(date)).thenReturn(diary);
         when(tagRepository.findTagByDiary_DiaryId(diary.getDiaryId())).thenReturn(tags);
 
@@ -404,7 +404,7 @@ public class DiaryServiceTest {
                 .name("비")
                 .build();
 
-        when(userRepository.findByUsername("testUsername")).thenReturn(mockUser);
+        when(userRepository.findByUsername("testUsername")).thenReturn(Optional.of(mockUser));
         when(diaryRepository.findByDate(date)).thenReturn(existingDiary);
         when(diaryRepository.save(existingDiary)).thenReturn(updatedDiary);
         when(tagService.createTag(existingDiary, reqDto)).thenReturn(reqDto.getTag());
