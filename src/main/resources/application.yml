@@ -17,15 +17,23 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
 
+  datasource:
+    url: jdbc:mariadb://localhost:3306/daily_emotion_db
+    username: root
+    password: 1234
+    driver-class-name: org.mariadb.jdbc.Driver
+    jpa:
+      hibernate:
+        ddl-auto: update
+      properties:
+        hibernate:
+          dialect: org.hibernate.dialect.MariaDBDialect
+
 server:
   servlet:
     context-path: /api
 
-firebase:
-  config:
-    path: firebaseServiceAccountKey.json
-
 jwt:
   secret: ${JWT_SECRET}
   accessExpiration: ${JWT_ACCESS_EXPIRATION}
-  refreshExpiration: ${JWT_REFRESH_EX
+  refreshExpiration: ${JWT_REFRESH_EXPIRATION}
