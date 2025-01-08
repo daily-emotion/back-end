@@ -1,4 +1,3 @@
-# application-oauth.yml
 spring:
   security:
     oauth2:
@@ -8,7 +7,7 @@ spring:
             client-id: ${OAUTH2_GOOGLE_CLIENT_ID}
             client-secret: ${OAUTH2_GOOGLE_CLIENT_SECRET}
             redirect-uri: ${OAUTH2_GOOGLE_REDIRECT_URI}
-            scope: name
+            scope: profile
           naver:
             client-name: naver
             client-id: ${OAUTH2_NAVER_CLIENT_ID}
