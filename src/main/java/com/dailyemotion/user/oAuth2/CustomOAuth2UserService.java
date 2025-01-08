@@ -3,7 +3,7 @@ package com.dailyemotion.user.oAuth2;
 import com.dailyemotion.domain.entity.User;
 import com.dailyemotion.domain.enums.Role;
 import com.dailyemotion.domain.enums.SocialType;
-import com.dailyemotion.domain.repository.UserRepository;
+import com.dailyemotion.user.repository.UserRepository;
 import com.dailyemotion.user.dto.request.UserReqDto;
 import com.dailyemotion.user.dto.response.*;
 import lombok.RequiredArgsConstructor;

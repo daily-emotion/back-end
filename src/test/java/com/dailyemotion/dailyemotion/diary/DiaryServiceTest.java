@@ -13,9 +13,9 @@ import com.dailyemotion.domain.entity.Diary;
 import com.dailyemotion.domain.entity.Tag;
 import com.dailyemotion.domain.entity.User;
 import com.dailyemotion.domain.enums.Emotion;
-import com.dailyemotion.domain.repository.DiaryRepository;
-import com.dailyemotion.domain.repository.TagRepository;
-import com.dailyemotion.domain.repository.UserRepository;
+import com.dailyemotion.diary.repository.DiaryRepository;
+import com.dailyemotion.tag.repository.TagRepository;
+import com.dailyemotion.user.repository.UserRepository;
 import com.dailyemotion.tag.service.TagService;
 import com.dailyemotion.user.oAuth2.CustomOAuth2User;
 import org.junit.jupiter.api.*;
@@ -30,6 +30,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static com.dailyemotion.common.errorCode.DiaryErrorCode.INVALID_MONTH_DATE_FORMAT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -126,7 +127,7 @@ public class DiaryServiceTest {
                 .name("소풍")
                 .build();
 
-        when(userRepository.findByUsername("testUsername")).thenReturn(mockUser);
+        when(userRepository.findByUsername("testUsername")).thenReturn(Optional.of(mockUser));
         when(diaryRepository.save(diary)).thenReturn(diary);
 
         // when
@@ -196,7 +197,7 @@ public class DiaryServiceTest {
                 .date(date)
                 .build();
 
-        when(userRepository.findByUsername("testUsername")).thenReturn(user);
+        when(userRepository.findByUsername("testUsername")).thenReturn(Optional.of(user));
         when(diaryRepository.findByDate(date)).thenReturn(diary);
 
         // when & then
@@ -232,7 +233,7 @@ public class DiaryServiceTest {
                 .username("diaryOwner")
                 .build();
 
-        User loggedUser = User.builder()
+        User user = User.builder()
                 .username("loggedUser")
                 .build();
 
@@ -245,7 +246,7 @@ public class DiaryServiceTest {
                 .date(date)
                 .build();
 
-        when(userRepository.findByUsername("loggedUser")).thenReturn(loggedUser);
+        when(userRepository.findByUsername("testUsername")).thenReturn(Optional.of(user));
         when(diaryRepository.findByDate(date)).thenReturn(diary);
 
         UserException exception = assertThrows(UserException.class, () -> diaryService.deleteDiary(date));
@@ -281,7 +282,7 @@ public class DiaryServiceTest {
                 .map(Tag::getName)
                 .toList();
 
-        when(userRepository.findByUsername("testUsername")).thenReturn(user);
+        when(userRepository.findByUsername("testUsername")).thenReturn(Optional.of(user));
         when(diaryRepository.findByDate(date)).thenReturn(diary);
         when(tagRepository.findTagByDiary_DiaryId(diary.getDiaryId())).thenReturn(tags);
 
@@ -403,7 +404,7 @@ public class DiaryServiceTest {
                 .name("비")
                 .build();
 
-        when(userRepository.findByUsername("testUsername")).thenReturn(mockUser);
+        when(userRepository.findByUsername("testUsername")).thenReturn(Optional.of(mockUser));
         when(diaryRepository.findByDate(date)).thenReturn(existingDiary);
         when(diaryRepository.save(existingDiary)).thenReturn(updatedDiary);
         when(tagService.createTag(existingDiary, reqDto)).thenReturn(reqDto.getTag());

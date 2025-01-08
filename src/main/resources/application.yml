@@ -1,9 +1,9 @@
 spring:
   config:
     import:
-      - optional:file:env/common.env
-      - optional:file:env/dev.env[dev]
-      - optional:file:env/prod.env[prod]
+      - optional:file:./env/common.env[common]
+      - optional:file:./env/dev.env[dev]
+      - optional:file:./env/prod.env[prod]
   application:
     name: daily-emotion
   profiles:
@@ -12,20 +12,27 @@ spring:
         - oauth
       prod:
         - oauth
+    active: dev, common, prod
   data:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
 
+  datasource:
+    url: jdbc:mariadb://localhost:3306/daily_emotion
+    driverClassName: org.mariadb.jdbc.Driver
+    username: root
+    password: 1234
+    jpa:
+      database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+      hibernate:
+        ddl-auto: update
+        show-sql: true
 server:
   servlet:
     context-path: /api
 
-firebase:
-  config:
-    path: firebaseServiceAccountKey.json
-
 jwt:
   secret: ${JWT_SECRET}
   accessExpiration: ${JWT_ACCESS_EXPIRATION}
-  refreshExpiration: ${JWT_REFRESH_EX
+  refreshExpiration: ${JWT_REFRESH_EXPIRATION}
