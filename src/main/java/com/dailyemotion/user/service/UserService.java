@@ -4,7 +4,7 @@ import com.dailyemotion.common.errorCode.UserErrorCode;
 import com.dailyemotion.common.exception.UserException;
 import com.dailyemotion.domain.entity.User;
 import com.dailyemotion.domain.enums.Role;
-import com.dailyemotion.domain.repository.UserRepository;
+import com.dailyemotion.user.repository.UserRepository;
 import com.dailyemotion.user.dto.response.TokenResponseDTO;
 import com.dailyemotion.user.dto.response.UserInfoResponseDTO;
 import com.dailyemotion.user.jwt.JWTUtil;

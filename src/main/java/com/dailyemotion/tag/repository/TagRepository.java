@@ -1,4 +1,4 @@
-package com.dailyemotion.domain.repository;
+package com.dailyemotion.tag.repository;
 
 import com.dailyemotion.domain.entity.Diary;
 import com.dailyemotion.domain.entity.Tag;

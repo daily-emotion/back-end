@@ -3,7 +3,7 @@ package com.dailyemotion.tag.service;
 import com.dailyemotion.diary.dto.request.DiaryReqDto;
 import com.dailyemotion.domain.entity.Diary;
 import com.dailyemotion.domain.entity.Tag;
-import com.dailyemotion.domain.repository.TagRepository;
+import com.dailyemotion.tag.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

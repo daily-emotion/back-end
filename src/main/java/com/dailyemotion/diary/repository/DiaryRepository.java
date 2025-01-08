@@ -1,4 +1,4 @@
-package com.dailyemotion.domain.repository;
+package com.dailyemotion.diary.repository;
 
 import com.dailyemotion.domain.entity.Diary;
 import org.springframework.data.jpa.repository.JpaRepository;

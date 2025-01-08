@@ -13,9 +13,9 @@ import com.dailyemotion.domain.entity.Diary;
 import com.dailyemotion.domain.entity.Tag;
 import com.dailyemotion.domain.entity.User;
 import com.dailyemotion.domain.enums.Emotion;
-import com.dailyemotion.domain.repository.DiaryRepository;
-import com.dailyemotion.domain.repository.TagRepository;
-import com.dailyemotion.domain.repository.UserRepository;
+import com.dailyemotion.diary.repository.DiaryRepository;
+import com.dailyemotion.tag.repository.TagRepository;
+import com.dailyemotion.user.repository.UserRepository;
 import com.dailyemotion.tag.service.TagService;
 import com.dailyemotion.user.oAuth2.CustomOAuth2User;
 import org.junit.jupiter.api.*;
@@ -30,6 +30,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static com.dailyemotion.common.errorCode.DiaryErrorCode.INVALID_MONTH_DATE_FORMAT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -97,9 +98,9 @@ public class DiaryServiceTest {
                 .imageUrl("www.이미지.com")
                 .build();
 
-        User mockUser = User.builder()
+        Optional<User> mockUser = Optional.ofNullable(User.builder()
                 .username("testUsername")
-                .build();
+                .build());
 
         Diary diary = Diary.builder()
                 .diaryId(1L)
