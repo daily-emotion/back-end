@@ -33,8 +33,6 @@ public class Diary extends BaseTimeEntity {
 
     private String imageUrl;
 
-    private String tag;
-
     private LocalDate date;
 
     @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
