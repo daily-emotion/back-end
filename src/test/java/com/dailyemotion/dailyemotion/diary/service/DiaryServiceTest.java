@@ -1,4 +1,4 @@
-package com.dailyemotion.dailyemotion.diary;
+package com.dailyemotion.dailyemotion.diary.service;
 
 import com.dailyemotion.common.errorCode.DiaryErrorCode;
 import com.dailyemotion.common.errorCode.UserErrorCode;
