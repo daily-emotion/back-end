@@ -14,7 +14,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 
-
 /**
  * OAuth2 인증 성공 후의 처리를 담당하는 핸들러
  * 사용자가 소셜 로그인에 성공하면 JWT 토큰을 생성하고 프론트엔드로 리다이렉트
@@ -34,13 +33,16 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     @Value("${jwt.refreshExpiration}")
     private Long refreshTokenExpiration;
 
+    // application.properties/yml에서 설정한 리다이렉트 URL
+    @Value("${redirect.url}")
+    private String redirectUrl;
+
     /**
      * OAuth2 인증 성공 시 호출되는 메소드
      * 이 메소드는 다음과 같은 처리를 수행:
      * 1. 인증된 사용자의 정보를 추출.
      * 2. 액세스 토큰과 리프레시 토큰을 생성.
      * 3. 생성된 토큰들을 URL 프래그먼트에 포함시켜 프론트엔드로 리다이렉트.
-     *
      * URL 프래그먼트를 사용하는 이유는 리다이렉트 과정에서 토큰이 노출되는 것을 방지하기 위함.
      * 프래그먼트(#)는 서버로 전송되지 않으며, 클라이언트 측에서만 접근 가능.
      *
@@ -62,7 +64,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         // 프론트엔드의 콜백 페이지로 리다이렉트, 프래그먼트에 토큰을 추가
         // 프래그먼트를 사용하여 토큰이 서버 로그나 URL 히스토리에 남지 않도록 함
-        String targetUrl = UriComponentsBuilder.fromUriString("https://dailyemotion.site/oauth/callback")
+        String targetUrl = UriComponentsBuilder.fromUriString(redirectUrl)
                 .fragment("token=" + accessToken + "&refreshToken=" + refreshToken)
                 .build().toUriString();
 
