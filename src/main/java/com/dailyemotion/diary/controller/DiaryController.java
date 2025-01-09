@@ -4,6 +4,7 @@ import com.dailyemotion.diary.dto.request.DiaryReqDto;
 import com.dailyemotion.diary.dto.response.DiaryGetResDto;
 import com.dailyemotion.diary.dto.response.DiaryResDto;
 import com.dailyemotion.diary.service.DiaryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class DiaryController {
     // 다이어리 생성
     @PostMapping("/{date}")
     public ResponseEntity<DiaryResDto> createDiary(@PathVariable(name = "date") LocalDate date,
-                                                   @RequestBody DiaryReqDto diaryReqDto) {
+                                                   @Valid @RequestBody DiaryReqDto diaryReqDto) {
         DiaryResDto diaryResDto = diaryService.createDiary(date, diaryReqDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(diaryResDto);
     }
@@ -44,7 +45,7 @@ public class DiaryController {
     // 다이어리 수정
     @PutMapping("/{date}")
     public ResponseEntity<DiaryResDto> updateDiary(@PathVariable(name = "date") LocalDate date,
-                                                   @RequestBody DiaryReqDto diaryReqDto) {
+                                                   @Valid @RequestBody DiaryReqDto diaryReqDto) {
         DiaryResDto diaryResDto = diaryService.updateDiary(date, diaryReqDto);
         return ResponseEntity.status(HttpStatus.OK).body(diaryResDto);
     }
