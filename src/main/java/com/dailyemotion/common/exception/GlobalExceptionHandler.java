@@ -1,6 +1,7 @@
 package com.dailyemotion.common.exception;
 
 import com.dailyemotion.common.errorCode.DiaryErrorCode;
+import com.dailyemotion.common.errorCode.TagErrorCode;
 import com.dailyemotion.common.errorCode.UserErrorCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -26,6 +27,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserException.class)
     public ResponseEntity<String> handleUserException(UserException ex) {
         UserErrorCode errorCode = ex.getErrorCode();
+        return ResponseEntity.status(errorCode.getStatus())
+                .body(errorCode.getMessage());
+    }
+
+    @ExceptionHandler(UserException.class)
+    public ResponseEntity<String> handleTagException(TagException ex) {
+        TagErrorCode errorCode = ex.getErrorCode();
         return ResponseEntity.status(errorCode.getStatus())
                 .body(errorCode.getMessage());
     }
