@@ -12,13 +12,17 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import lombok.RequiredArgsConstructor;
 
 import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+
+import java.util.Arrays;
 import java.util.Collections;
 
 @RequiredArgsConstructor
@@ -33,101 +37,90 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        // CORS 설정
-        http
-                .cors(corsCustomizer -> corsCustomizer.configurationSource(request -> {
-                    CorsConfiguration configuration = new CorsConfiguration();
-                    // TODO: 프론트엔드 도메인으로 변경 필요
-                    configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
-                    configuration.setAllowedMethods(Collections.singletonList("*"));
-                    configuration.setAllowedHeaders(Collections.singletonList("*"));
-                    configuration.setMaxAge(3600L);
-                    configuration.setExposedHeaders(Collections.singletonList("Authorization"));
-                    return configuration;
-                }));
+        // CORS 설정 - 프론트엔드 도메인 허용
+        http.cors(corsCustomizer -> corsCustomizer.configurationSource(request -> {
+            CorsConfiguration configuration = new CorsConfiguration();
+            configuration.setAllowedOrigins(Collections.singletonList("https://dailyemotion.site/"));
+            configuration.setAllowedMethods(Collections.singletonList("*"));
+            configuration.setAllowedHeaders(Collections.singletonList("*"));
+            configuration.setExposedHeaders(Collections.singletonList("Authorization"));
+            configuration.setMaxAge(3600L);
+            return configuration;
+        }));
 
-        // 기본 설정 비활성화
-        http
-                .csrf(csrf -> csrf.disable())
+        // 기본 보안 설정 비활성화 (JWT 사용을 위함)
+        http.csrf(csrf -> csrf.disable())
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable());
 
-        // JWT 필터 설정
-        http
-                .addFilterAfter(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+        // JWT 인증 필터 추가 - OAuth2 로그인 이후 적용
+        http.addFilterAfter(new JWTFilter(jwtUtil), OAuth2LoginAuthenticationFilter.class);
 
-        // OAuth2 설정
-        http
-                .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo ->
-                                userInfo.userService(customOAuth2UserService))
-                        .successHandler(customSuccessHandler)
-                );
+        // OAuth2 소셜 로그인 설정
+        http.oauth2Login(oauth2 -> oauth2
+                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                .successHandler(customSuccessHandler)
+        );
 
-        // 인증 실패 처리
-        http
-                .exceptionHandling(customizer ->
-                        customizer.authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                            response.setContentType("application/json;charset=UTF-8");
-                            response.getWriter().write("{\"error\": \"인증이 필요합니다.\"}");
-                        })
-                );
+        // 인증 실패시 처리 - 401 Unauthorized 응답
+        http.exceptionHandling(handling -> handling
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"error\": \"인증이 필요합니다.\"}");
+                })
+        );
 
-        // URL 별 인가 설정
-        http
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(permitAllRequestMatchers()).permitAll()
-                        .requestMatchers(authenticatedRequestMatchers()).authenticated()
-                        .anyRequest().denyAll()
-                );
+        // URL 별 인증 설정
+        http.authorizeHttpRequests(auth -> auth
+                .requestMatchers(permitAllRequestMatchers()).permitAll()  // 인증 없이 접근 가능한 경로
+                .anyRequest().authenticated()  // 그 외 모든 요청은 인증 필요
+        );
 
-        // 세션 설정
-        http
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        // 세션 설정 - JWT 사용으로 인한 STATELESS 설정
+        http.sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        );
 
         // 로그아웃 설정
-        http
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .addLogoutHandler(customLogoutHandler)
-                        .logoutSuccessHandler((request, response, authentication) -> {
-                            response.setStatus(HttpServletResponse.SC_OK);
-                        })
-                );
+        http.logout(logout -> logout
+                .logoutUrl("/logout")
+                .addLogoutHandler(customLogoutHandler)
+                .logoutSuccessHandler((request, response, authentication) ->
+                        response.setStatus(HttpServletResponse.SC_OK))
+        );
 
         return http.build();
     }
 
     /**
-     * 인증 없이 접근 가능한 엔드포인트 설정
+     * 인증 없이 접근 가능한 경로 설정
+     * - 회원가입/로그인 관련 (/auth/**)
+     * - OAuth2 관련 (/oauth2/**)
+     * - Swagger UI 관련 (API 문서)
      */
     private RequestMatcher[] permitAllRequestMatchers() {
-        return new RequestMatcher[]{
-                // 인증 관련
-                antMatcher(HttpMethod.POST, "/auth/login"),
-                antMatcher(HttpMethod.POST, "/auth/signup"),
-                antMatcher(HttpMethod.GET, "/oauth2/**"),
-                // Swagger
-                antMatcher(HttpMethod.GET, "/swagger-ui/**"),
-                antMatcher(HttpMethod.GET, "/v3/api-docs/**"),
-                // Health Check
-                antMatcher(HttpMethod.GET, "/health")
+        return new RequestMatcher[] {
+                // 에러 페이지
+                new AntPathRequestMatcher("/error"),
+
+                // 인증 관련 엔드포인트
+                new AntPathRequestMatcher("/auth/login", "POST"),   // 로그인
+                new AntPathRequestMatcher("/auth/signup", "POST"),  // 회원가입
+                new AntPathRequestMatcher("/oauth2/**"),            // 소셜 로그인
+
+                // Swagger UI & API Docs 관련 엔드포인트
+                new AntPathRequestMatcher("/swagger-ui/**"),
+                new AntPathRequestMatcher("/swagger-ui.html"),
+                new AntPathRequestMatcher("/v3/api-docs/**"),
+                new AntPathRequestMatcher("/api-docs/**"),
         };
     }
 
     /**
-     * 인증이 필요한 엔드포인트 설정
+     * 인증이 필요한 경로 (위의 permitAll 외 모든 경로)
+     * - 일기 관련 (/diary/**)
+     * - 통계 관련 (/report/**)
+     * - 사용자 프로필 (/user/profile)
      */
-    private RequestMatcher[] authenticatedRequestMatchers() {
-        return new RequestMatcher[]{
-                // 사용자 관련
-                antMatcher(HttpMethod.GET, "/api/users/me"),
-                antMatcher(HttpMethod.PUT, "/api/users/me"),
-                // 토큰 관련
-                antMatcher(HttpMethod.POST, "/auth/refresh"),
-                // TODO: 추가 API 엔드포인트
-        };
-    }
 }
