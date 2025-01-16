@@ -114,6 +114,7 @@ public class SecurityConfig {
                 new AntPathRequestMatcher("/swagger-ui.html"),
                 new AntPathRequestMatcher("/v3/api-docs/**"),
                 new AntPathRequestMatcher("/api-docs/**"),
+
         };
     }
 
@@ -123,4 +124,16 @@ public class SecurityConfig {
      * - 통계 관련 (/report/**)
      * - 사용자 프로필 (/user/profile)
      */
+
+    private RequestMatcher[] authenticatedRequestMatchers() {
+        return new RequestMatcher[]{
+                // 사용자 관련
+                antMatcher(HttpMethod.GET, "/api/users/me"),
+                antMatcher(HttpMethod.PUT, "/api/users/me"),
+                // 토큰 관련
+                antMatcher(HttpMethod.POST, "/auth/refresh"),
+                antMatcher(HttpMethod.POST, "/api/diaries/**")
+                // TODO: 추가 API 엔드포인트
+        };
+    }
 }

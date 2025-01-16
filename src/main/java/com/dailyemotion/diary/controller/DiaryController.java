@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -36,7 +37,7 @@ public class DiaryController {
             @Parameter(description = "다이어리 작성 날짜 (YYYY-MM-DD)", example = "2024-01-16", required = true)
             @PathVariable(name = "date") LocalDate date,
             @Parameter(description = "다이어리 생성 정보", required = true)
-            @RequestBody DiaryReqDto diaryReqDto) {
+            @Valid @RequestBody DiaryReqDto diaryReqDto) {
         DiaryResDto diaryResDto = diaryService.createDiary(date, diaryReqDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(diaryResDto);
     }
@@ -78,7 +79,8 @@ public class DiaryController {
             @Parameter(description = "수정할 다이어리 날짜 (YYYY-MM-DD)", example = "2024-01-16", required = true)
             @PathVariable(name = "date") LocalDate date,
             @Parameter(description = "다이어리 수정 정보", required = true)
-            @RequestBody DiaryReqDto diaryReqDto) {
+            @Vaild @RequestBody DiaryReqDto diaryReqDto) {
+
         DiaryResDto diaryResDto = diaryService.updateDiary(date, diaryReqDto);
         return ResponseEntity.status(HttpStatus.OK).body(diaryResDto);
     }
