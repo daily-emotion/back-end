@@ -64,16 +64,6 @@ public class DiaryService {
         diaryRepository.delete(diary);
     }
 
-    // OAuth2 커스터마이징 한 클래스에서 username 가져오는 메소드
-    private static String getCustomOAuth2User() {
-        if (SecurityContextHolder.getContext().getAuthentication() == null) {
-            throw new UserException(USER_NOT_AUTHORIZED);
-        }
-
-        CustomOAuth2User customOAuth2User = (CustomOAuth2User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return customOAuth2User.getUsername();
-    }
-
     // Diary 조회
     public DiaryResDto getDiary(LocalDate date) {
 
@@ -130,6 +120,16 @@ public class DiaryService {
         return diaries.stream()
                 .map(DiaryGetResDto::from)
                 .collect(Collectors.toList());
+    }
+
+    // OAuth2 커스터마이징 한 클래스에서 username 가져오는 메소드
+    private static String getCustomOAuth2User() {
+        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            throw new UserException(USER_NOT_AUTHORIZED);
+        }
+
+        CustomOAuth2User customOAuth2User = (CustomOAuth2User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return customOAuth2User.getUsername();
     }
 
     // 다이어리 생성 시 이미 작성한 다이어리가 존재하는지 확인하는 메소드

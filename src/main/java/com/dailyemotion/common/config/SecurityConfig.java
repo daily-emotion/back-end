@@ -113,7 +113,8 @@ public class SecurityConfig {
                 antMatcher(HttpMethod.GET, "/swagger-ui/**"),
                 antMatcher(HttpMethod.GET, "/v3/api-docs/**"),
                 // Health Check
-                antMatcher(HttpMethod.GET, "/health")
+                antMatcher(HttpMethod.GET, "/health"),
+                antMatcher(HttpMethod.POST, "/auth/token"),
         };
     }
 
@@ -127,6 +128,7 @@ public class SecurityConfig {
                 antMatcher(HttpMethod.PUT, "/api/users/me"),
                 // 토큰 관련
                 antMatcher(HttpMethod.POST, "/auth/refresh"),
+                antMatcher(HttpMethod.POST, "/api/diaries/**")
                 // TODO: 추가 API 엔드포인트
         };
     }
