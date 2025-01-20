@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
                 .body(errorCode.getMessage());
     }
 
-    @ExceptionHandler(UserException.class)
+    @ExceptionHandler(TagException.class)
     public ResponseEntity<String> handleTagException(TagException ex) {
         TagErrorCode errorCode = ex.getErrorCode();
         return ResponseEntity.status(errorCode.getStatus())
