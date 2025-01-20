@@ -1,7 +1,9 @@
 package com.dailyemotion.common.exception;
 
 import com.dailyemotion.common.errorCode.DiaryErrorCode;
+import lombok.Getter;
 
+@Getter
 public class DiaryException extends RuntimeException {
     // 에러 코드를 기반으로 예외를 터트림
 
@@ -12,7 +14,4 @@ public class DiaryException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
-    public DiaryErrorCode getErrorCode() {
-        return errorCode;
-    }
 }
