@@ -79,7 +79,7 @@ public class DiaryController {
             @Parameter(description = "수정할 다이어리 날짜 (YYYY-MM-DD)", example = "2024-01-16", required = true)
             @PathVariable(name = "date") LocalDate date,
             @Parameter(description = "다이어리 수정 정보", required = true)
-            @Vaild @RequestBody DiaryReqDto diaryReqDto) {
+            @Valid @RequestBody DiaryReqDto diaryReqDto) {
 
         DiaryResDto diaryResDto = diaryService.updateDiary(date, diaryReqDto);
         return ResponseEntity.status(HttpStatus.OK).body(diaryResDto);
