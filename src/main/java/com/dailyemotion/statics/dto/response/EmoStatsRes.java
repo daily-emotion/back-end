@@ -9,7 +9,7 @@ import java.util.Map;
 
 @Getter
 @Builder
-public class EmotStatsRes {
+public class EmoStatsRes {
     private String yearMonth;
     private Map<Emotion, Long> emotionCounts;
 }

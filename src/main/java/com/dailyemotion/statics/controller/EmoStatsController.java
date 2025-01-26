@@ -1,6 +1,6 @@
 package com.dailyemotion.statics.controller;
 
-import com.dailyemotion.statics.dto.response.EmotStatsRes;
+import com.dailyemotion.statics.dto.response.EmoStatsRes;
 import com.dailyemotion.statics.service.EmoStatsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,7 +29,7 @@ public class EmoStatsController {
             @ApiResponse(responseCode = "404", description = "해당 월의 통계 데이터가 없음")
     })
     @GetMapping("/{year}/{month}")
-    public ResponseEntity<EmotStatsRes> getMonthlyStatistics(
+    public ResponseEntity<EmoStatsRes> getMonthlyStatistics(
             @Parameter(description = "조회할 연도", example = "2024", required = true)
             @PathVariable int year,
             @Parameter(description = "조회할 월(1-12)", example = "1", required = true)

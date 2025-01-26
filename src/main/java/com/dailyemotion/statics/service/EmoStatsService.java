@@ -5,7 +5,7 @@ import com.dailyemotion.common.exception.StatsException;
 import com.dailyemotion.diary.repository.DiaryRepository;
 import com.dailyemotion.domain.entity.Diary;
 import com.dailyemotion.domain.enums.Emotion;
-import com.dailyemotion.statics.dto.response.EmotStatsRes;
+import com.dailyemotion.statics.dto.response.EmoStatsRes;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +22,7 @@ public class EmoStatsService {
 
     private final DiaryRepository diaryRepository;
 
-    public EmotStatsRes getMonthlyStatistics(int year, int month) {
+    public EmoStatsRes getMonthlyStatistics(int year, int month) {
         LocalDate startDate = LocalDate.of(year, month, 1);
         LocalDate endDate = startDate.plusMonths(1).minusDays(1);
 
@@ -39,7 +39,7 @@ public class EmoStatsService {
                         Collectors.counting()
                 ));
 
-        return EmotStatsRes.builder()
+        return EmoStatsRes.builder()
                 .yearMonth(String.format("%d-%02d", year, month))
                 .emotionCounts(emotionCounts)
                 .build();
