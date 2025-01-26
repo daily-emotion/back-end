@@ -21,13 +21,14 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.dailyemotion.common.errorCode.DiaryErrorCode.*;
-import static com.dailyemotion.common.errorCode.TagErrorCode.TAG_NOT_FOUND;
+import static com.dailyemotion.common.errorCode.TagErrorCode.INVALID_TAG_NAME;
 import static com.dailyemotion.common.errorCode.UserErrorCode.*;
 
 
@@ -73,7 +74,7 @@ public class DiaryService {
 
         // 다이어리 ID에 해당하는 태그를 조회하고 태그 이름만 리스트로 저장해서 반환
         List<String> resTags = Optional.ofNullable(tagRepository.findTagByDiary_DiaryId(diary.getDiaryId()))
-                .orElseThrow(() -> new TagException(TAG_NOT_FOUND))
+                .orElseThrow(() -> new TagException(INVALID_TAG_NAME))
                 .stream()
                 .map(Tag::getName)
                 .collect(Collectors.toList());
@@ -147,6 +148,7 @@ public class DiaryService {
                 .content(diaryReqDto.getContent())
                 .imageUrl(diaryReqDto.getImageUrl())
                 .date(date) // @PathVariable값
+                .tags(new ArrayList<>())
                 .build();
     }
 
