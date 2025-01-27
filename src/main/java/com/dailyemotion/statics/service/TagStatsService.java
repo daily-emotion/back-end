@@ -1,7 +1,5 @@
 package com.dailyemotion.statics.service;
 
-import com.dailyemotion.common.errorCode.StatsErrorCode;
-import com.dailyemotion.common.exception.StatsException;
 import com.dailyemotion.diary.repository.DiaryRepository;
 import com.dailyemotion.domain.entity.Diary;
 import com.dailyemotion.domain.entity.Tag;
@@ -25,9 +23,6 @@ public class TagStatsService {
 
         List<Diary> diaries = diaryRepository.findByDateBetween(startDate, endDate);
 
-        if (diaries.isEmpty()) {
-            throw new StatsException(StatsErrorCode.STATISTICS_NOT_FOUND);
-        }
 
         Map<String, Long> tagCounts = diaries.stream()
                 .flatMap(diary -> diary.getTags().stream())

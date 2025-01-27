@@ -28,11 +28,8 @@ public class EmoStatsService {
 
         List<Diary> diaries = diaryRepository.findByDateBetween(startDate, endDate);
 
-        if (diaries.isEmpty()) {
-            throw new StatsException(STATISTICS_NOT_FOUND);
-        }
-
-        // 감정 카운팅을 Map으로 직접 변환
+        // 감정 데이터를 Map으로 변환합니다
+        // 데이터가 없는 경우 빈 Map이 생성됩니다
         Map<Emotion, Long> emotionCounts = diaries.stream()
                 .collect(Collectors.groupingBy(
                         Diary::getEmotion,
