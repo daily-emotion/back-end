@@ -36,13 +36,10 @@ public class SummaryStatsService {
                 .limit(6) // 상위 6개만 선택
                 .collect(Collectors.toList());
 
-        // SummaryStatsRes도 수정이 필요합니다
         return SummaryStatsRes.builder()
                 .yearMonth(String.format("%d-%02d", year, month))
-                .topEmotions(topEmotions)    // 이름을 변경하고 List 타입으로 변경
-                .topTags(topTags)            // 이름을 변경하고 List 타입으로 변경
+                .topEmotions(topEmotions)
+                .topTags(topTags)
                 .build();
     }
 }
-
-// SummaryStatsRes도 새로운 구조에 맞게 수정해야 합니다
