@@ -13,6 +13,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.dailyemotion.common.errorCode.TagErrorCode.INVALID_TAG_NAME;
+import static com.dailyemotion.common.errorCode.TagErrorCode.TAG_COUNT_EXCEEDED;
 import static com.dailyemotion.tag.constants.TagConstants.ALLOWED_TAGS;
 
 @Service
@@ -54,10 +56,10 @@ public class TagService {
      */
     private void validateTags(List<String> tags) {
         if (tags.size() > 3) {
-            throw new TagException(TagErrorCode.TAG_COUNT_EXCEEDED);
+            throw new TagException(TAG_COUNT_EXCEEDED);
         }
         if (!new HashSet<>(ALLOWED_TAGS).containsAll(tags)) {
-            throw new TagException(TagErrorCode.INVALID_TAG_NAME);
+            throw new TagException(INVALID_TAG_NAME);
         }
     }
 }
