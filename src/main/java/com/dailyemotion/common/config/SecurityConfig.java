@@ -40,7 +40,10 @@ public class SecurityConfig {
         // CORS 설정 - 프론트엔드 도메인 허용
         http.cors(corsCustomizer -> corsCustomizer.configurationSource(request -> {
             CorsConfiguration configuration = new CorsConfiguration();
-            configuration.setAllowedOrigins(Collections.singletonList("https://dailyemotion.site/"));
+            configuration.setAllowedOrigins(Arrays.asList(
+                    "https://dailyemotion.site",
+                    "http://localhost:5173"
+            ));
             configuration.setAllowedMethods(Collections.singletonList("*"));
             configuration.setAllowedHeaders(Collections.singletonList("*"));
             configuration.setExposedHeaders(Collections.singletonList("Authorization"));
