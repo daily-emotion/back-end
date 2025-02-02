@@ -18,6 +18,7 @@ import com.dailyemotion.user.oAuth2.CustomOAuth2User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -40,6 +41,7 @@ public class DiaryService {
     private final UserRepository userRepository;
     private final TagService tagService;
     private final TagRepository tagRepository;
+    private final ImageService imageService;
 
     public DiaryResDto createDiary(LocalDate date, DiaryReqDto diaryReqDto) {
 
@@ -157,7 +159,7 @@ public class DiaryService {
     }
 
     // 해당 다이어리를 작성한 유저가 현재 로그인한 유저와 일치하는지 확인하는 메소드
-    private void isDiaryOwner (Diary diary) {
+    private void isDiaryOwner(Diary diary) {
         String username = getCustomOAuth2User();
         String diaryUsername = diary.getUser().getUsername();
 
@@ -165,8 +167,9 @@ public class DiaryService {
             throw new UserException(USER_NOT_MATCHED);
         }
     }
+
     // 다이어리가 존재하지 않을 경우 예외를 던지는 메소드
-    private void getDiaryOrThrow (Diary diary) {
+    private void getDiaryOrThrow(Diary diary) {
         if (diary == null) {
             throw new DiaryException(DIARY_NOT_FOUND);
         }
@@ -176,5 +179,9 @@ public class DiaryService {
         if (month == null || month.length() != 6) {
             throw new DiaryException(INVALID_MONTH_DATE_FORMAT);
         }
+    }
+
+    public String uploadImageToGcs(MultipartFile file) {
+        return imageService.uploadImage(file);
     }
 }

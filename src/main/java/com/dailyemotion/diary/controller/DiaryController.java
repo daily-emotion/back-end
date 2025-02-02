@@ -11,9 +11,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -96,5 +98,12 @@ public class DiaryController {
             @PathVariable(name = "month") String month) {
         List<DiaryGetResDto> diaryGetResDto = diaryService.getMonthlyDiary(month);
         return ResponseEntity.status(HttpStatus.OK).body(diaryGetResDto);
+    }
+
+    @Operation(summary = "다이어리 이미지 업로드")
+    @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file) {
+        String imageUrl = diaryService.uploadImageToGcs(file);
+        return ResponseEntity.ok(imageUrl);
     }
 }
