@@ -36,11 +36,14 @@ out/
 ### VS Code ###
 .vscode/
 
-# Firebase
-firebaseServiceAccountKey.json
+
 
 # .env
 env/*
 
 # db
 db/
+
+# gcp
+gcp-service-account.json
+
