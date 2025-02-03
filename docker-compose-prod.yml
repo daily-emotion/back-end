@@ -2,6 +2,8 @@ version: '3.7'
 
 services:
   backend:
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod # application-prod.yml을 자동으로 적용
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,7 +12,7 @@ services:
       - "8080:8080"
     env_file:
       - ./env/common.env
-      - ./env/dev.env
+      - ./env/prod.env
     networks:
       - app-network
     restart: no
