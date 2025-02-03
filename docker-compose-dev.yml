@@ -35,8 +35,7 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MARIADB_ROOT_PASSWORD: 1234   # root 비밀번호 설정
-      MARIADB_DATABASE: daily_emotion_db  # 기본 데이터베이스 생성
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}   # root 비밀번호 설정
     volumes:
       - mariadb-data:/var/lib/mysql
       - ./db/initdb.d:/docker-entrypoint-initdb.d  # 초기화 스크립트 경로 마운트
