@@ -1,0 +1,47 @@
+spring:
+  config:
+    import:
+      - optional:file:./env/common.env[common]
+      - optional:file:./env/dev.env[dev]
+  application:
+    name: daily-emotion
+  profiles:
+    group:
+      dev:
+        - oauth
+      prod:
+        - oauth
+    active: dev,common # prod는 개발환경에서
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
+  datasource:
+    url: jdbc:mariadb://mariadb:3306/daily_emotion
+    driver-class-name: org.mariadb.jdbc.Driver
+    username: root
+    password: 1234
+  jpa:
+    database-platform: org.hibernate.dialect.MariaDBDialect
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+
+server:
+  servlet:
+    context-path: /api
+
+jwt:
+  secret: ${JWT_SECRET}
+  accessExpiration: ${JWT_ACCESS_EXPIRATION}
+  refreshExpiration: ${JWT_REFRESH_EXPIRATION}
+
+springdoc:
+  swagger-ui:
+    operations-sorter: get-post-put-delete
+    tagsSorter: alpha
+
+logging:
+  level:
+    org.springframework.security: DEBUG

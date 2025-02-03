@@ -2,8 +2,7 @@ spring:
   config:
     import:
       - optional:file:./env/common.env[common]
-      - optional:file:./env/dev.env[dev]
-#      - optional:file:./env/prod.env[prod] prod
+      - optional:file:./env/prod.env[prod]
   application:
     name: daily-emotion
   profiles:
@@ -12,14 +11,14 @@ spring:
         - oauth
       prod:
         - oauth
-    active: dev,common # prod는 개발환경에서
+    active: prod,common
   data:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
 
   datasource:
-    url: jdbc:mariadb://localhost:3306/daily_emotion
+    url: jdbc:mariadb://mariadb:3306/daily_emotion
     driver-class-name: org.mariadb.jdbc.Driver
     username: root
     password: 1234
