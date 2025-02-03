@@ -9,9 +9,8 @@ jobs:
     name: spring boot server ci-cd
     runs-on: ubuntu-latest
 
-    # 1. 체크아웃 (dev나 main의 코드를 워크플로우로 가져옴)
-
     steps:
+      # 1. 체크아웃 (dev나 main의 코드를 워크플로우로 가져옴)
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -25,17 +24,16 @@ jobs:
       # 3. Gradle 빌드 (테스트 포함)
       - name: Build
         run: ./gradlew build -x test
-        # run: ./gradlew build -x test로 테스트 없이 할 수도 있음
 
-      # 4. 빌드된 .jar 파일을 GCP로 전송
-      - name: Upload .jar to GCP
+      # 4. 빌드된 .jar 파일과 환경 변수 파일을 GCP로 전송
+      - name: Upload .jar and .env files to GCP
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.GCP_HOST }}
           username: ${{ secrets.GCP_USERNAME }}
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
-          source: "build/libs/*.jar,dockerfile,docker-compose-prod.yml"
-          target: ~/daily-emotion
+          source: "build/libs/*.jar, dockerfile, docker-compose-prod.yml, env/common.env, env/prod.env"
+          target: "~/daily-emotion"
 
       # 5. GCP에서 Docker Compose로 컨테이너 갱신
       - name: Restart application with Docker Compose
@@ -48,8 +46,14 @@ jobs:
             cd ~/daily-emotion
             echo "Restarting Docker containers..."
             export SPRING_PROFILES_ACTIVE=prod
+            export PATH=$PATH:/usr/local/bin
+
+            # env 파일이 제대로 업로드되었는지 확인
+            ls -lah env/
+            cat env/common.env || echo "⚠️ common.env 파일이 없습니다!"
+            cat env/prod.env || echo "⚠️ prod.env 파일이 없습니다!"
+
+            # Docker 실행
             docker-compose -f docker-compose-prod.yml down
             docker rmi daily-emotion-backend
             docker-compose -f docker-compose-prod.yml up --build -d
-
-        # 6. Slack으로 알림 -> 필요시 구현 검토
