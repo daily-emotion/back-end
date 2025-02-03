@@ -25,7 +25,18 @@ jobs:
       - name: Build
         run: ./gradlew build -x test
 
-      # 4. 빌드된 .jar 파일과 환경 변수 파일을 GCP로 전송
+      # 4. GCP 서버에 env 디렉터리 생성 (존재하지 않으면 자동 생성)
+      - name: Ensure env directory exists on GCP
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.GCP_HOST }}
+          username: ${{ secrets.GCP_USERNAME }}
+          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          script: |
+            mkdir -p ~/daily-emotion/env
+            echo "✅ env directory ensured"
+
+      # 5. 빌드된 .jar 파일과 환경 변수 파일을 GCP로 전송
       - name: Upload .jar and .env files to GCP
         uses: appleboy/scp-action@master
         with:
@@ -35,7 +46,31 @@ jobs:
           source: "build/libs/*.jar, dockerfile, docker-compose-prod.yml, env/common.env, env/prod.env"
           target: "~/daily-emotion"
 
-      # 5. GCP에서 Docker Compose로 컨테이너 갱신
+      # 6. GCP 서버에서 .env 파일이 정상적으로 업로드되었는지 확인
+      - name: Verify .env files on GCP
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.GCP_HOST }}
+          username: ${{ secrets.GCP_USERNAME }}
+          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          script: |
+            ls -lah ~/daily-emotion/env/
+            cat ~/daily-emotion/env/common.env || echo "⚠️ common.env 파일이 없습니다!"
+            cat ~/daily-emotion/env/prod.env || echo "⚠️ prod.env 파일이 없습니다!"
+
+      # 7. GCP 서버에서 Docker 실행 권한 문제 해결
+      - name: Fix Docker permission issue
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.GCP_HOST }}
+          username: ${{ secrets.GCP_USERNAME }}
+          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          script: |
+            sudo usermod -aG docker $USER
+            sudo chmod 666 /var/run/docker.sock
+            echo "✅ Docker permission fixed"
+
+      # 8. GCP에서 Docker Compose로 컨테이너 갱신
       - name: Restart application with Docker Compose
         uses: appleboy/ssh-action@master
         with:
@@ -48,12 +83,6 @@ jobs:
             export SPRING_PROFILES_ACTIVE=prod
             export PATH=$PATH:/usr/local/bin
 
-            # env 파일이 제대로 업로드되었는지 확인
-            ls -lah env/
-            cat env/common.env || echo "⚠️ common.env 파일이 없습니다!"
-            cat env/prod.env || echo "⚠️ prod.env 파일이 없습니다!"
-
-            # Docker 실행
+            # Docker Compose 실행
             docker-compose -f docker-compose-prod.yml down
-            docker rmi daily-emotion-backend
             docker-compose -f docker-compose-prod.yml up --build -d
