@@ -3,6 +3,7 @@ spring:
     import:
       - optional:file:./env/common.env[common]
       - optional:file:./env/prod.env[prod]
+      - optional:classpath:application-oauth.yml
   application:
     name: daily-emotion
   profiles:
@@ -11,11 +12,6 @@ spring:
         - oauth
       prod:
         - oauth
-    active: prod,common
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
 
   datasource:
     url: jdbc:mariadb://mariadb:3306/daily_emotion
