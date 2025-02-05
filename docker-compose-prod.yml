@@ -5,15 +5,13 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod, oauth # application-prod.yml을 자동으로 적용
       - SPRING_DATASOURCE_URL=jdbc:mariadb://mariadb:3306/daily_emotion
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=1234
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
     build:
       context: .
       dockerfile: Dockerfile
     container_name: daily-emotion-backend
     ports:
       - "8080:8080"
-
     env_file:
       - ./env/common.env
       - ./env/prod.env
