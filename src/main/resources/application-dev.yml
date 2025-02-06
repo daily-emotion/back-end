@@ -2,7 +2,8 @@ spring:
   config:
     import:
       - optional:file:./env/common.env[common]
-      - optional:file:./env/dev.env[dev]
+      - optional:file:./env/dev.env[prod]
+      - optional:classpath:application-oauth.yml
   application:
     name: daily-emotion
   profiles:
@@ -11,15 +12,6 @@ spring:
         - oauth
       prod:
         - oauth
-    active: dev,common # prod는 개발환경에서
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
 
   datasource:
     url: jdbc:mariadb://mariadb:3306/daily_emotion
