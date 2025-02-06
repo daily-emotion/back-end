@@ -70,19 +70,30 @@ jobs:
             sudo chmod 666 /var/run/docker.sock
             echo "✅ Docker permission fixed"
 
-      # 8. GCP에서 Docker Compose로 컨테이너 갱신
+        # 8. GCP에서 Docker Compose로 컨테이너 갱신 (환경변수 추가)
       - name: Restart application with Docker Compose
         uses: appleboy/ssh-action@master
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}  # DB 비밀번호 환경변수 추가
         with:
           host: ${{ secrets.GCP_HOST }}
           username: ${{ secrets.GCP_USERNAME }}
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          envs: DB_PASSWORD  # 환경변수를 SSH 세션으로 전달
           script: |
             cd ~/daily-emotion
             echo "Restarting Docker containers..."
             export SPRING_PROFILES_ACTIVE=prod
             export PATH=$PATH:/usr/local/bin
+            export DB_PASSWORD=$DB_PASSWORD  # 환경변수 설정
+
+            # 이전 컨테이너와 이미지 정리
+            docker-compose -f docker-compose-prod.yml down
+            docker system prune -f  # 사용하지 않는 이미지 정리
 
             # Docker Compose 실행
-            docker-compose -f docker-compose-prod.yml down
             docker-compose -f docker-compose-prod.yml up --build -d
+
+            # 컨테이너 상태 확인
+            docker-compose -f docker-compose-prod.yml ps
+            echo "✅ Deployment completed"

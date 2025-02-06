@@ -12,7 +12,13 @@ spring:
 
   # 데이터베이스 설정
   datasource:
-    url: jdbc:mariadb://${DB_HOST}:${DB_PORT}/${DB_NAME}  # 운영 환경 변수로 관리
+    url: jdbc:mariadb://daily-emotion-mariadb:3306/daily_emotion
     driver-class-name: org.mariadb.jdbc.Driver
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    username: root
+    password: 1234
+
+# 디버그 설정 추가
+debug: true
+logging:
+  level:
+    org.springframework.boot.context.config: TRACE

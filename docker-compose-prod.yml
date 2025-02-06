@@ -2,7 +2,9 @@ version: '3.7'
 services:
   backend:
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://daily-emotion-mariadb:3306/daily_emotion
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=1234
     build:
       context: .
       dockerfile: Dockerfile
@@ -17,18 +19,18 @@ services:
       - redis
     networks:
       - app-network
-    restart: unless-stopped  # 운영 환경에서는 자동 재시작이 중요
+    restart: no
 
   redis:
     image: redis:latest
     container_name: daily-emotion-redis
     expose:
-      - "6379"  # 내부 네트워크에서만 접근 가능
+      - "6379"
     volumes:
       - redis-data:/data
     networks:
       - app-network
-    restart: unless-stopped
+    restart: no
 
   mariadb:
     image: mariadb:latest
@@ -36,11 +38,19 @@ services:
     expose:
       - "3306"
     environment:
-      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: 1234
       MARIADB_DATABASE: daily_emotion
     volumes:
       - mariadb-data:/var/lib/mysql
       - ./db/initdb.d:/docker-entrypoint-initdb.d
     networks:
       - app-network
-    restart: unless-stopped
+    restart: no
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  mariadb-data:

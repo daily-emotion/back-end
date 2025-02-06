@@ -12,7 +12,7 @@ spring:
 
   # 데이터베이스 설정
   datasource:
-    url: jdbc:mariadb://localhost:3306/daily_emotion
+    url: jdbc:mariadb://daily-emotion-mariadb:3306/daily_emotion
     driver-class-name: org.mariadb.jdbc.Driver
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
