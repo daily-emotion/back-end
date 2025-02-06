@@ -3,45 +3,16 @@ spring:
     import:
       - optional:file:./env/common.env[common]
       - optional:file:./env/prod.env[prod]
-  application:
-    name: daily-emotion
-  profiles:
-    group:
-      dev:
-        - oauth
-      prod:
-        - oauth
-    active: prod,common
+
+  # Redis 설정
   data:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
 
+  # 데이터베이스 설정
   datasource:
-    url: jdbc:mariadb://mariadb:3306/daily_emotion
+    url: jdbc:mariadb://${DB_HOST}:${DB_PORT}/${DB_NAME}  # 운영 환경 변수로 관리
     driver-class-name: org.mariadb.jdbc.Driver
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-  jpa:
-    database-platform: org.hibernate.dialect.MariaDBDialect
-    hibernate:
-      ddl-auto: none
-    show-sql: true
-
-server:
-  servlet:
-    context-path: /api
-
-jwt:
-  secret: ${JWT_SECRET}
-  accessExpiration: ${JWT_ACCESS_EXPIRATION}
-  refreshExpiration: ${JWT_REFRESH_EXPIRATION}
-
-springdoc:
-  swagger-ui:
-    operations-sorter: get-post-put-delete
-    tagsSorter: alpha
-
-logging:
-  level:
-    org.springframework.security: DEBUG
