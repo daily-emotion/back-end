@@ -1,13 +1,6 @@
 spring:
   application:
     name: daily-emotion
-  profiles:
-    group:
-      dev:
-        - oauth
-      prod:
-        - oauth
-
   # 데이터베이스 설정
   datasource:
     url: jdbc:mariadb://daily-emotion-mariadb:3306/daily_emotion
