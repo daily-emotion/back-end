@@ -7,7 +7,6 @@ spring:
         - oauth
       prod:
         - oauth
-
   datasource:
     url: jdbc:mariadb://localhost:3306/daily_emotion
     driver-class-name: org.mariadb.jdbc.Driver
