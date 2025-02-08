@@ -1,10 +1,7 @@
 version: '3.7'
 services:
   backend:
-    volumes:
-      - ./config:/app/config
     environment:
-      - SPRING_CONFIG_LOCATION=/app/config/application-prod.yml
       - SPRING_PROFILES_ACTIVE=prod, oauth # application-prod.yml을 자동으로 적용
       - SPRING_DATASOURCE_URL=jdbc:mariadb://mariadb:3306/daily_emotion
       - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
