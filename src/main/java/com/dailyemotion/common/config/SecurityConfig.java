@@ -107,12 +107,8 @@ public class SecurityConfig {
                 new AntPathRequestMatcher("/swagger-ui/**"),
                 new AntPathRequestMatcher("/swagger-ui.html"),
                 new AntPathRequestMatcher("/v3/api-docs/**"),
-                new AntPathRequestMatcher("/swagger-resources/**"),
-                new AntPathRequestMatcher("/webjars/**"),
-
-                // OAuth2 인증 관련 경로
-                new AntPathRequestMatcher("/oauth2/**"),
-                new AntPathRequestMatcher("/login/oauth2/code/**"),
+                new AntPathRequestMatcher("/api-docs/**"),
+                new AntPathRequestMatcher("/auth/**", "POST"),
 
                 // 에러 페이지
                 new AntPathRequestMatcher("/error")

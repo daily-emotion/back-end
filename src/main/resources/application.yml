@@ -1,45 +1,41 @@
 spring:
+  config:
+    import:
+      - optional:file:./env/common.env[common]
+      - optional:file:./env/prod.env[prod]
+      - optional:classpath:application-oauth.yml
   application:
     name: daily-emotion
   profiles:
-    active: dev  # 기본값으로 dev 설정, 운영 환경에서는 외부에서 변경 가능
     group:
       dev:
         - oauth
       prod:
         - oauth
 
-  # 파일 업로드 설정
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
-
-  # JPA 공통 설정
+  datasource:
+    url: jdbc:mariadb://localhost:3306/daily_emotion
+    driver-class-name: org.mariadb.jdbc.Driver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     database-platform: org.hibernate.dialect.MariaDBDialect
     hibernate:
       ddl-auto: none
     show-sql: true
-
-# API 경로 설정
 server:
   servlet:
     context-path: /api
-
-# JWT 설정
 jwt:
   secret: ${JWT_SECRET}
   accessExpiration: ${JWT_ACCESS_EXPIRATION}
   refreshExpiration: ${JWT_REFRESH_EXPIRATION}
 
-# Swagger UI 설정
 springdoc:
   swagger-ui:
     operations-sorter: get-post-put-delete
     tagsSorter: alpha
 
-# 로깅 설정
 logging:
   level:
     org.springframework.security: DEBUG

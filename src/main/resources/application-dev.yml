@@ -2,13 +2,16 @@ spring:
   config:
     import:
       - optional:file:./env/common.env[common]
-      - optional:file:./env/dev.env[dev]
-
-  # Redis 설정
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
+      - optional:file:./env/dev.env[prod]
+      - optional:classpath:application-oauth.yml
+  application:
+    name: daily-emotion
+  profiles:
+    group:
+      dev:
+        - oauth
+      prod:
+        - oauth
 
   # 데이터베이스 설정
   datasource:

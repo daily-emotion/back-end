@@ -3,6 +3,8 @@ FROM openjdk:21-jdk-slim
 
 # 빌드된 애플리케이션 JAR 파일을 컨테이너에 복사
 COPY build/libs/daily-emotion-0.0.1-SNAPSHOT.jar app.jar
+COPY src/main/resources/gcp-key.json /app/resources/gcp-key.json
+COPY src/main/resources/application-oauth.yml /app/classes/
 
 # 포트 설정 (백엔드 애플리케이션이 사용할 포트)
 EXPOSE 8080

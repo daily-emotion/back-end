@@ -2,7 +2,9 @@ version: '3.7'
 services:
   backend:
     environment:
-      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_PROFILES_ACTIVE=dev, oauth # application-prod.yml을 자동으로 적용
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://mariadb:3306/daily_emotion
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
     build:
       context: .
       dockerfile: Dockerfile
@@ -33,9 +35,7 @@ services:
     container_name: daily-emotion-mariadb
     ports:
       - "3306:3306"
-    environment:
-      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
-      MARIADB_DATABASE: daily_emotion
+
     volumes:
       - mariadb-data:/var/lib/mysql
       - ./db/initdb.d:/docker-entrypoint-initdb.d
