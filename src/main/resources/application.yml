@@ -1,9 +1,4 @@
 spring:
-  config:
-    import:
-      - optional:file:./env/common.env[common]
-      - optional:file:./env/prod.env[prod]
-      - optional:classpath:application-oauth.yml
   application:
     name: daily-emotion
   profiles:
