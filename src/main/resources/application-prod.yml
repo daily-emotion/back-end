@@ -13,31 +13,15 @@ spring:
       prod:
         - oauth
 
+  # 데이터베이스 설정
   datasource:
-    url: jdbc:mariadb://mariadb:3306/daily_emotion
+    url: jdbc:mariadb://daily-emotion-mariadb:3306/daily_emotion
     driver-class-name: org.mariadb.jdbc.Driver
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-  jpa:
-    database-platform: org.hibernate.dialect.MariaDBDialect
-    hibernate:
-      ddl-auto: none
-    show-sql: true
+    username: root
+    password: 1234
 
-server:
-  servlet:
-    context-path: /api
-
-jwt:
-  secret: ${JWT_SECRET}
-  accessExpiration: ${JWT_ACCESS_EXPIRATION}
-  refreshExpiration: ${JWT_REFRESH_EXPIRATION}
-
-springdoc:
-  swagger-ui:
-    operations-sorter: get-post-put-delete
-    tagsSorter: alpha
-
+# 디버그 설정 추가
+debug: true
 logging:
   level:
-    org.springframework.security: DEBUG
+    org.springframework.boot.context.config: TRACE
