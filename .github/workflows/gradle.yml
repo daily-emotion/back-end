@@ -1,8 +1,8 @@
-name: sparkle-note-deploy
+name: daily-emotion-deploy
 
 on:
   push:
-    branches: [ "dev" , "main"]
+    branches: [ "dev", "main" ]
 
 jobs:
   deploy:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 체크아웃 (dev나 main의 코드를 워크플로우로 가져옴)
+      # 1.  체크아웃 (코드를 가져옴)
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -25,75 +25,34 @@ jobs:
       - name: Build
         run: ./gradlew build -x test
 
-      # 4. GCP 서버에 env 디렉터리 생성 (존재하지 않으면 자동 생성)
-      - name: Ensure env directory exists on GCP
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.GCP_HOST }}
-          username: ${{ secrets.GCP_USERNAME }}
-          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
-          script: |
-            mkdir -p ~/daily-emotion/env
-            echo "✅ env directory ensured"
-
-      # 5. 빌드된 .jar 파일과 환경 변수 파일을 GCP로 전송
-      - name: Upload .jar and .env files to GCP
+      # 4. 빌드된 .jar 파일과 Docker 관련 파일을 GCP로 전송
+      - name: Upload .jar and Docker files to GCP
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.GCP_HOST }}
           username: ${{ secrets.GCP_USERNAME }}
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
-          source: "build/libs/*.jar, dockerfile, docker-compose-prod.yml, env/common.env, env/prod.env"
+          source: "build/libs/*.jar, dockerfile, docker-compose.yml"
           target: "~/daily-emotion"
 
-      # 6. GCP 서버에서 .env 파일이 정상적으로 업로드되었는지 확인
-      - name: Verify .env files on GCP
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.GCP_HOST }}
-          username: ${{ secrets.GCP_USERNAME }}
-          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
-          script: |
-            ls -lah ~/daily-emotion/env/
-            cat ~/daily-emotion/env/common.env || echo "⚠️ common.env 파일이 없습니다!"
-            cat ~/daily-emotion/env/prod.env || echo "⚠️ prod.env 파일이 없습니다!"
-
-      # 7. GCP 서버에서 Docker 실행 권한 문제 해결
-      - name: Fix Docker permission issue
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.GCP_HOST }}
-          username: ${{ secrets.GCP_USERNAME }}
-          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
-          script: |
-            sudo usermod -aG docker $USER
-            sudo chmod 666 /var/run/docker.sock
-            echo "✅ Docker permission fixed"
-
-        # 8. GCP에서 Docker Compose로 컨테이너 갱신 (환경변수 추가)
+      # 5. GCP에서 Docker Compose로 컨테이너 갱신
       - name: Restart application with Docker Compose
         uses: appleboy/ssh-action@master
-        env:
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}  # DB 비밀번호 환경변수 추가
         with:
           host: ${{ secrets.GCP_HOST }}
           username: ${{ secrets.GCP_USERNAME }}
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
-          envs: DB_PASSWORD  # 환경변수를 SSH 세션으로 전달
           script: |
             cd ~/daily-emotion
             echo "Restarting Docker containers..."
-            export SPRING_PROFILES_ACTIVE=prod
-            export PATH=$PATH:/usr/local/bin
-            export DB_PASSWORD=$DB_PASSWORD  # 환경변수 설정
-
-            # 이전 컨테이너와 이미지 정리
-            docker-compose -f docker-compose-prod.yml down
-            docker system prune -f  # 사용하지 않는 이미지 정리
-
-            # Docker Compose 실행
-            docker-compose -f docker-compose-prod.yml up --build -d
+            
+            # 기존 컨테이너 종료 및 정리
+            docker-compose down
+            docker system prune -f  # 불필요한 이미지 정리
+            
+            # Docker Compose 실행 (파일명 `docker-compose.yml` 고정)
+            docker-compose up --build -d
 
             # 컨테이너 상태 확인
-            docker-compose -f docker-compose-prod.yml ps
+            docker-compose ps
             echo "✅ Deployment completed"

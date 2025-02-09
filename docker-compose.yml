@@ -2,9 +2,9 @@ version: '3.7'
 services:
   backend:
     environment:
-      - SPRING_PROFILES_ACTIVE=prod, oauth # application-prod.yml을 자동으로 적용
-      - SPRING_DATASOURCE_URL=jdbc:mariadb://mariadb:3306/daily_emotion
-      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE},oauth
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://${DB_HOST}:${DB_PORT}/${DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
     build:
       context: .
       dockerfile: Dockerfile
@@ -12,14 +12,13 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - ./env/common.env
-      - ./env/prod.env
+      - .env  # <-- 여기 "-" 추가해서 올바르게 설정
     depends_on:
       - mariadb
       - redis
     networks:
       - app-network
-    restart: no
+    restart: unless-stopped
 
   redis:
     image: redis:latest
@@ -30,7 +29,6 @@ services:
       - redis-data:/data
     networks:
       - app-network
-    restart: no
 
   mariadb:
     image: mariadb:latest
@@ -42,7 +40,6 @@ services:
       - ./db/initdb.d:/docker-entrypoint-initdb.d
     networks:
       - app-network
-    restart: no
 
 networks:
   app-network:
