@@ -11,6 +11,8 @@ services:
     container_name: daily-emotion-backend
     ports:
       - "8080:8080"
+    volumes:
+      - ./gcp-key.json:/app/gcp-key.json
     env_file:
       - .env  # <-- 여기 "-" 추가해서 올바르게 설정
     depends_on:

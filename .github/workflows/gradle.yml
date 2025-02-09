@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1.  체크아웃 (코드를 가져옴)
+      # 1. 체크아웃 (코드를 가져옴)
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -21,21 +21,26 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      # 3. Gradle 빌드 (테스트 포함)
+      # 3. GCP 키 파일 생성
+      - name: Create GCP key file
+        run: |
+          echo '${{ secrets.GCP_KEY_JSON }}' > gcp-key.json
+
+      # 4. Gradle 빌드 (테스트 제외)
       - name: Build
         run: ./gradlew build -x test
 
-      # 4. 빌드된 .jar 파일과 Docker 관련 파일을 GCP로 전송
+      # 5. 빌드된 .jar 파일과 Docker 관련 파일을 GCP로 전송
       - name: Upload .jar and Docker files to GCP
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.GCP_HOST }}
           username: ${{ secrets.GCP_USERNAME }}
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
-          source: "build/libs/*.jar, dockerfile, docker-compose.yml"
+          source: "build/libs/*.jar, dockerfile, docker-compose.yml, gcp-key.json"
           target: "~/daily-emotion"
 
-      # 5. GCP에서 Docker Compose로 컨테이너 갱신
+      # 6. GCP에서 Docker Compose로 컨테이너 갱신
       - name: Restart application with Docker Compose
         uses: appleboy/ssh-action@master
         with:
@@ -50,7 +55,7 @@ jobs:
             docker-compose down
             docker system prune -f  # 불필요한 이미지 정리
             
-            # Docker Compose 실행 (파일명 `docker-compose.yml` 고정)
+            # Docker Compose 실행
             docker-compose up --build -d
 
             # 컨테이너 상태 확인
