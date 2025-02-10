@@ -110,6 +110,12 @@ public class SecurityConfig {
                 new AntPathRequestMatcher("/api-docs/**"),
                 new AntPathRequestMatcher("/auth/**", "POST"),
 
+                // OAuth 관련 경로
+                new AntPathRequestMatcher("/oauth/callback/**"),
+                new AntPathRequestMatcher("/login/oauth2/code/**"),
+                new AntPathRequestMatcher("/error"),
+                new AntPathRequestMatcher("/oauth2/authorization/**"),
+
                 // 에러 페이지
                 new AntPathRequestMatcher("/error")
         };
@@ -135,6 +141,7 @@ public class SecurityConfig {
                 new AntPathRequestMatcher("/reports/emotions/{year}/{month}"),
                 new AntPathRequestMatcher("/reports/tags/{year}/{month}"),
                 new AntPathRequestMatcher("/reports/summary/{year}/{month}"),
+
 
                 // 태그 관련 API
                 new AntPathRequestMatcher("/tags")

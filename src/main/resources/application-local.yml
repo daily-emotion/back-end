@@ -5,7 +5,7 @@ spring:
 
   # 개발용 MariaDB 설정
   datasource:
-    url: jdbc:mariadb://localhost:3306/daily_emotion_local
+    url: jdbc:mariadb://localhost:3306/daily_emotion
 
   # Redis (로컬 개발용)
   data:
