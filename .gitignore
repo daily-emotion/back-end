@@ -39,7 +39,8 @@ out/
 
 
 # .env
-env/*
+.env
+.env.local
 
 # db
 db/

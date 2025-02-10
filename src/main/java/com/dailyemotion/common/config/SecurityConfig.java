@@ -115,6 +115,7 @@ public class SecurityConfig {
                 new AntPathRequestMatcher("/login/oauth2/code/**"),
                 new AntPathRequestMatcher("/error"),
                 new AntPathRequestMatcher("/oauth2/authorization/**"),
+                new AntPathRequestMatcher("/hello"),
 
                 // 에러 페이지
                 new AntPathRequestMatcher("/error")
