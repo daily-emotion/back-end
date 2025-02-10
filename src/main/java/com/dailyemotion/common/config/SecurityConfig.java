@@ -18,8 +18,10 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
-
-
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Configuration
@@ -31,6 +33,23 @@ public class SecurityConfig {
     private final CustomSuccessHandler customSuccessHandler;
     private final CustomLogoutHandler customLogoutHandler;
     private final JWTUtil jwtUtil;
+
+    private void configureCors(HttpSecurity http) throws Exception {
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // 허용할 도메인
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // 허용할 메서드
+        configuration.setAllowedHeaders(List.of("*")); // 모든 헤더 허용
+        configuration.setAllowCredentials(true); // 인증 정보 포함 허용
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration); // 모든 엔드포인트에 적용
+        return source;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -54,6 +73,8 @@ public class SecurityConfig {
 
         // 로그아웃 설정
         configureLogout(http);
+
+        configureCors(http);
 
         return http.build();
     }
@@ -118,13 +139,7 @@ public class SecurityConfig {
                 new AntPathRequestMatcher("/hello"),
 
                 // 에러 페이지
-                new AntPathRequestMatcher("/error")
-        };
-    }
-
-    // 인증이 필요한 API 엔드포인트들을 정의하는 메서드
-    private RequestMatcher[] authenticatedRequestMatchers() {
-        return new RequestMatcher[] {
+                new AntPathRequestMatcher("/error"),
                 // 일기 관련 API
                 new AntPathRequestMatcher("/diaries/images"),
                 new AntPathRequestMatcher("/diaries/monthly/{month}"),
@@ -146,6 +161,13 @@ public class SecurityConfig {
 
                 // 태그 관련 API
                 new AntPathRequestMatcher("/tags")
+        };
+    }
+
+    // 인증이 필요한 API 엔드포인트들을 정의하는 메서드
+    private RequestMatcher[] authenticatedRequestMatchers() {
+        return new RequestMatcher[] {
+
         };
     }
 
