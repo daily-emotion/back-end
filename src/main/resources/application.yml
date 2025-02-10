@@ -5,7 +5,6 @@ spring:
   # 환경 변수 로드 (공통 + 환경별 추가 로드)
   config:
     import:
-      - optional:file:.env.common
       - optional:file:.env.${SPRING_PROFILES_ACTIVE}
 
   # 프로필 그룹 설정 - OAuth 관련 프로필 연결
