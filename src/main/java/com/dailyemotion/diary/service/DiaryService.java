@@ -104,22 +104,20 @@ public class DiaryService {
     }
 
     public List<DiaryGetResDto> getMonthlyDiary(String month) {
-
-        // month 형식이 "yyyyMM"로 6자리인지 검증
         invalidMonth(month);
 
-        // 입력받은 month의 첫날 계산
+        String username = getCustomOAuth2User();
+
         LocalDate targetMonthStart = LocalDate.parse(month + "01", DateTimeFormatter.ofPattern("yyyyMMdd"));
-
-        // 시작 날짜: 입력받은 월의 이전 달의 첫날
         LocalDate startDate = targetMonthStart.minusMonths(1).withDayOfMonth(1);
-        // 종료 날짜: 입력받은 월의 다음 달의 마지막 날
-        LocalDate endDate = targetMonthStart.plusMonths(1).withDayOfMonth(targetMonthStart.plusMonths(1).lengthOfMonth());
+        LocalDate endDate = targetMonthStart.plusMonths(1)
+                .withDayOfMonth(targetMonthStart.plusMonths(1).lengthOfMonth());
 
-        // 범위 쿼리 실행 후 DTO 변환
-        List<Diary> diaries = diaryRepository.findByDateBetween(startDate, endDate);
+        // 새로운 메서드 사용
+        List<Diary> diaries = diaryRepository.findByUserUsernameAndDateBetween(
+                username, startDate, endDate
+        );
 
-        // 데이터가 없을 경우 빈 리스트 반환
         if (diaries.isEmpty()) {
             return Collections.emptyList();
         }
