@@ -43,6 +43,7 @@ public class DiaryService {
     private final TagRepository tagRepository;
     private final ImageService imageService;
 
+    // 다이어리 생성
     public DiaryResDto createDiary(LocalDate date, DiaryReqDto diaryReqDto) {
         String username = getCustomOAuth2User();
         validateDiaryCreation(username, date);
@@ -54,21 +55,27 @@ public class DiaryService {
         List<String> tags = tagService.createTag(diary, diaryReqDto);
         return DiaryResDto.from(diary, tags);
     }
-    // Diary 삭제
-    public void deleteDiary(LocalDate date) {
 
-        Diary diary = diaryRepository.findByDate(date);
-        getDiaryOrThrow(diary); // 다이어리가 존재하는지 확인
-        isDiaryOwner(diary); // 다이어리 주인인지 확인
+    // 다이어리 삭제
+    public void deleteDiary(LocalDate date) {
+        String username = getCustomOAuth2User();
+        Diary diary = diaryRepository.findByUserUsernameAndDate(username, date);
+
+        if (diary == null) {
+            throw new DiaryException(DIARY_NOT_FOUND);
+        }
+
         diaryRepository.delete(diary);
     }
 
-    // Diary 조회
+    // 다이어리 조회
     public DiaryResDto getDiary(LocalDate date) {
+        String username = getCustomOAuth2User();
+        Diary diary = diaryRepository.findByUserUsernameAndDate(username, date);
 
-        Diary diary = diaryRepository.findByDate(date);
-        getDiaryOrThrow(diary); // 다이어리가 존재하는지 확인
-        isDiaryOwner(diary); // 다이어리 주인인지 확인
+        if (diary == null) {
+            throw new DiaryException(DIARY_NOT_FOUND);
+        }
 
         // 다이어리 ID에 해당하는 태그를 조회하고 태그 이름만 리스트로 저장해서 반환
         List<String> resTags = Optional.ofNullable(tagRepository.findTagByDiary_DiaryId(diary.getDiaryId()))
@@ -79,16 +86,17 @@ public class DiaryService {
         return DiaryResDto.from(diary, resTags);
     }
 
-    // Diary 수정
+    // 다이어리 수정
     public DiaryResDto updateDiary(LocalDate date, DiaryReqDto diaryReqDto) {
-
-        Diary diary = diaryRepository.findByDate(date);
-        getDiaryOrThrow(diary); // 다이어리가 존재하는지 확인
-        isDiaryOwner(diary); // 다이어리 주인인지 확인
         String username = getCustomOAuth2User();
-        Optional<User> user = userRepository.findByUsername(username);
+        Diary diary = diaryRepository.findByUserUsernameAndDate(username, date);
 
-        Diary updatedDiary = from(diaryReqDto, user.orElse(null), date);
+        if (diary == null) {
+            throw new DiaryException(DIARY_NOT_FOUND);
+        }
+
+        Optional<User> user = userRepository.findByUsername(username);
+        Diary updatedDiary = from(diaryReqDto, user.orElseThrow(() -> new UserException(USER_NOT_FOUND)), date);
         diary.updateFrom(updatedDiary);
         diaryRepository.save(diary);
 
@@ -99,9 +107,9 @@ public class DiaryService {
         return DiaryResDto.from(diary, tags);
     }
 
+    // 월별 다이어리 조회
     public List<DiaryGetResDto> getMonthlyDiary(String month) {
         invalidMonth(month);
-
         String username = getCustomOAuth2User();
 
         LocalDate targetMonthStart = LocalDate.parse(month + "01", DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -109,7 +117,6 @@ public class DiaryService {
         LocalDate endDate = targetMonthStart.plusMonths(1)
                 .withDayOfMonth(targetMonthStart.plusMonths(1).lengthOfMonth());
 
-        // 새로운 메서드 사용
         List<Diary> diaries = diaryRepository.findByUserUsernameAndDateBetween(
                 username, startDate, endDate
         );
@@ -123,7 +130,7 @@ public class DiaryService {
                 .collect(Collectors.toList());
     }
 
-    // OAuth2 커스터마이징 한 클래스에서 username 가져오는 메소드
+    // OAuth2 인증된 사용자의 username을 가져오는 메소드
     private static String getCustomOAuth2User() {
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
             throw new UserException(USER_NOT_AUTHORIZED);
@@ -133,7 +140,7 @@ public class DiaryService {
         return customOAuth2User.getUsername();
     }
 
-    // 다이어리 생성 시 이미 작성한 다이어리가 존재하는지 확인하는 메소드
+    // 다이어리 생성 시 해당 사용자의 다이어리가 이미 존재하는지 확인하는 메소드
     private void validateDiaryCreation(String username, LocalDate date) {
         if (diaryRepository.existsByUserUsernameAndDate(username, date)) {
             throw new DiaryException(DIARY_ALREADY_EXIST);
@@ -141,40 +148,25 @@ public class DiaryService {
     }
 
     // ReqDto를 Diary 엔티티로 변환하는 메소드
-    private static Diary from(DiaryReqDto diaryReqDto, User username, LocalDate date) {
+    private static Diary from(DiaryReqDto diaryReqDto, User user, LocalDate date) {
         return Diary.builder()
-                .user(username)
-                .emotion(Emotion.valueOf(diaryReqDto.getEmotion())) // String을 Enum으로
+                .user(user)
+                .emotion(Emotion.valueOf(diaryReqDto.getEmotion()))
                 .content(diaryReqDto.getContent())
                 .imageUrl(diaryReqDto.getImageUrl())
-                .date(date) // @PathVariable값
+                .date(date)
                 .tags(new ArrayList<>())
                 .build();
     }
 
-    // 해당 다이어리를 작성한 유저가 현재 로그인한 유저와 일치하는지 확인하는 메소드
-    private void isDiaryOwner(Diary diary) {
-        String username = getCustomOAuth2User();
-        String diaryUsername = diary.getUser().getUsername();
-
-        if (!username.equals(diaryUsername)) {
-            throw new UserException(USER_NOT_MATCHED);
-        }
-    }
-
-    // 다이어리가 존재하지 않을 경우 예외를 던지는 메소드
-    private void getDiaryOrThrow(Diary diary) {
-        if (diary == null) {
-            throw new DiaryException(DIARY_NOT_FOUND);
-        }
-    }
-
+    // 월 형식이 올바른지 확인하는 메소드
     private void invalidMonth(String month) {
         if (month == null || month.length() != 6) {
             throw new DiaryException(INVALID_MONTH_DATE_FORMAT);
         }
     }
 
+    // 이미지 업로드
     public String uploadImageToGcs(MultipartFile file) {
         return imageService.uploadImage(file);
     }

@@ -11,14 +11,14 @@ import java.util.List;
 
 @Repository
 public interface DiaryRepository extends JpaRepository<Diary, Long> {
-    // 기존 메서드 유지
-    boolean existsByDate(LocalDate date);
-    Diary findByDate(LocalDate date);
+    // 단일 다이어리 조회
+    @Query("SELECT d FROM Diary d WHERE d.user.username = :username AND d.date = :date")
+    Diary findByUserUsernameAndDate(
+            @Param("username") String username,
+            @Param("date") LocalDate date
+    );
 
-    @Query("SELECT d FROM Diary d WHERE d.date BETWEEN :startDate AND :endDate")
-    List<Diary> findByDateBetween(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
-
-    // 사용자별 조회를 위한 새로운 메서드 추가
+    // 기간별 다이어리 조회
     @Query("SELECT d FROM Diary d WHERE d.user.username = :username AND d.date BETWEEN :startDate AND :endDate")
     List<Diary> findByUserUsernameAndDateBetween(
             @Param("username") String username,
@@ -26,7 +26,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
             @Param("endDate") LocalDate endDate
     );
 
-    // 다이어리 존재 여부 체크용
+    // 다이어리 존재 여부 체크
     @Query("SELECT EXISTS (SELECT 1 FROM Diary d WHERE d.user.username = :username AND d.date = :date)")
     boolean existsByUserUsernameAndDate(
             @Param("username") String username,
