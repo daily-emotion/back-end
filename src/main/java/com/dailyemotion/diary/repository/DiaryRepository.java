@@ -25,4 +25,11 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
+
+    // 다이어리 존재 여부 체크용
+    @Query("SELECT EXISTS (SELECT 1 FROM Diary d WHERE d.user.username = :username AND d.date = :date)")
+    boolean existsByUserUsernameAndDate(
+            @Param("username") String username,
+            @Param("date") LocalDate date
+    );
 }

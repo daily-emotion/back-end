@@ -44,20 +44,16 @@ public class DiaryService {
     private final ImageService imageService;
 
     public DiaryResDto createDiary(LocalDate date, DiaryReqDto diaryReqDto) {
-
-        validateDiaryCreation(date); // 이미 다이어리가 존재하는지 확인
-
-        // 현재 로그인한 유저
         String username = getCustomOAuth2User();
-        Optional<User> user = userRepository.findByUsername(username);
+        validateDiaryCreation(username, date);
 
+        Optional<User> user = userRepository.findByUsername(username);
         Diary diary = from(diaryReqDto, user.orElseThrow(() -> new UserException(USER_NOT_FOUND)), date);
         diaryRepository.save(diary);
 
         List<String> tags = tagService.createTag(diary, diaryReqDto);
         return DiaryResDto.from(diary, tags);
     }
-
     // Diary 삭제
     public void deleteDiary(LocalDate date) {
 
@@ -138,8 +134,8 @@ public class DiaryService {
     }
 
     // 다이어리 생성 시 이미 작성한 다이어리가 존재하는지 확인하는 메소드
-    private void validateDiaryCreation(LocalDate date) {
-        if (diaryRepository.existsByDate(date)) {
+    private void validateDiaryCreation(String username, LocalDate date) {
+        if (diaryRepository.existsByUserUsernameAndDate(username, date)) {
             throw new DiaryException(DIARY_ALREADY_EXIST);
         }
     }
