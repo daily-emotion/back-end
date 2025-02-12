@@ -33,7 +33,7 @@ public class SwaggerConfig {
                 .security(List.of(securityRequirement))
                 .info(apiInfo())
                 .servers(List.of(  // 서버 URL 순서 지정
-                        new Server().url("https://dailymotion.site/api").description("Production Server"),
+                        new Server().url("https://dailyemotion.site/api").description("Production Server"),
                         new Server().url("http://localhost:8080/api").description("Local Server")
                 ))
                 .tags(List.of(  // 태그 순서 지정
