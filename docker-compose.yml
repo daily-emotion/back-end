@@ -42,6 +42,8 @@ services:
       - ./db/initdb.d:/docker-entrypoint-initdb.d
     networks:
       - app-network
+    environment:
+      - MARIADB_ROOT_PASSWORD=${DB_PASSWORD}
 
 networks:
   app-network:
