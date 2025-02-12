@@ -15,6 +15,7 @@ import com.dailyemotion.tag.repository.TagRepository;
 import com.dailyemotion.user.repository.UserRepository;
 import com.dailyemotion.tag.service.TagService;
 import com.dailyemotion.user.oAuth2.CustomOAuth2User;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -87,6 +88,7 @@ public class DiaryService {
     }
 
     // 다이어리 수정
+    @Transactional
     public DiaryResDto updateDiary(LocalDate date, DiaryReqDto diaryReqDto) {
         String username = getCustomOAuth2User();
         Diary diary = diaryRepository.findByUserUsernameAndDate(username, date);
@@ -98,12 +100,18 @@ public class DiaryService {
         Optional<User> user = userRepository.findByUsername(username);
         Diary updatedDiary = from(diaryReqDto, user.orElseThrow(() -> new UserException(USER_NOT_FOUND)), date);
         diary.updateFrom(updatedDiary);
+
+        // 1. 기존 태그 삭제
+        tagRepository.deleteAllByDiary(diary);
+        diary.getTags().clear();
+        diaryRepository.save(diary); // 태그가 제거된 다이어리를 저장
+
+        // 2. 새로운 태그 추가
+        List<String> tags = tagService.createTag(diary, diaryReqDto);
+
+        // 3. 최종적으로 다이어리를 저장
         diaryRepository.save(diary);
 
-        tagRepository.deleteAllByDiary(diary);
-        tagService.createTag(diary, diaryReqDto);
-
-        List<String> tags = diaryReqDto.getTag();
         return DiaryResDto.from(diary, tags);
     }
 
