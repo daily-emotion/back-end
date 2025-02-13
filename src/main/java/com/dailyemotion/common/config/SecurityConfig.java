@@ -67,7 +67,7 @@ public class SecurityConfig {
     private void configureOAuth2(HttpSecurity http) throws Exception {
         http.oauth2Login(oauth2 -> oauth2
                 .redirectionEndpoint(endpoint ->
-                        endpoint.baseUri("/api/login/oauth2/code/*")  // ✅ 기존 `/login/oauth2/code/*` → `/api/login/oauth2/code/*` 추가
+                        endpoint.baseUri("/login/oauth2/code/*")  // ✅ 기존 `/login/oauth2/code/*` → `/api/login/oauth2/code/*` 추가
                 )
                 .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                 .successHandler(customSuccessHandler)
