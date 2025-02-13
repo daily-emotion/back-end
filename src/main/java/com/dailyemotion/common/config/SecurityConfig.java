@@ -140,8 +140,8 @@ public class SecurityConfig {
                 // ✅ OAuth2 인증 관련 경로 추가
                 antMatcher("/oauth/callback/**"),
                 antMatcher("/login/oauth2/code/**"),
-                antMatcher("/api/login/oauth2/code/**"),  // ✅ 추가
-                antMatcher("/api/oauth2/authorization/**"),
+                antMatcher("/login/oauth2/code/**"),  // ✅ 추가
+                antMatcher("//oauth2/authorization/**"),
                 antMatcher(POST, "/auth/**"),
 
                 // 토큰 관련
