@@ -141,7 +141,7 @@ public class SecurityConfig {
                 antMatcher("/oauth/callback/**"),
                 antMatcher("/login/oauth2/code/**"),
                 antMatcher("/api/login/oauth2/code/**"),  // ✅ 추가
-                antMatcher("/oauth2/authorization/**"),
+                antMatcher("/api/oauth2/authorization/**"),  
                 antMatcher(POST, "/auth/**"),
 
                 // 토큰 관련
