@@ -66,14 +66,18 @@ public class SecurityConfig {
     // ✅ OAuth2 로그인 설정 수정
     private void configureOAuth2(HttpSecurity http) throws Exception {
         http.oauth2Login(oauth2 -> oauth2
-                .redirectionEndpoint(endpoint ->
-                        endpoint.baseUri("/login/oauth2/code/*")  // ✅ 기존 `/login/oauth2/code/*` → `/api/login/oauth2/code/*` 추가
+                .authorizationEndpoint(endpoint ->
+                        endpoint.baseUri("/oauth2/authorization")  // 인증 시작점 명시적 설정
                 )
-                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                .redirectionEndpoint(endpoint ->
+                        endpoint.baseUri("/login/oauth2/code/*")
+                )
+                .userInfoEndpoint(userInfo ->
+                        userInfo.userService(customOAuth2UserService)
+                )
                 .successHandler(customSuccessHandler)
         );
     }
-
     // CORS 설정
     private void configureCors(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
@@ -140,8 +144,7 @@ public class SecurityConfig {
                 // ✅ OAuth2 인증 관련 경로 추가
                 antMatcher("/oauth/callback/**"),
                 antMatcher("/login/oauth2/code/**"),
-                antMatcher("/login/oauth2/code/**"),  // ✅ 추가
-                antMatcher("//oauth2/authorization/**"),
+                antMatcher("/oauth2/authorization/**"),
                 antMatcher(POST, "/auth/**"),
 
                 // 토큰 관련
