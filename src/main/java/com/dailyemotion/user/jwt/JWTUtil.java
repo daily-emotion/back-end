@@ -124,7 +124,7 @@ public class JWTUtil {
                     .get(claimName, String.class);
         } catch (Exception e) {
             log.error("Failed to get claim: {} from token", claimName, e);
-            throw new JwtException("Invalid token claim: " + claimName);
+            throw new JwtException("유효하지 않는 토큰 claim" + claimName);
         }
     }
 
@@ -141,10 +141,10 @@ public class JWTUtil {
                     .getExpiration();
             return expiration.before(new Date());
         } catch (ExpiredJwtException e) {
-            log.debug("Token is expired", e);
+            log.debug("토큰 만료 ", e);
             return true;
         } catch (Exception e) {
-            log.error("Error checking token expiration", e);
+            log.error("토큰 유효기간 만료 체크", e);
             return true;
         }
     }
@@ -161,10 +161,10 @@ public class JWTUtil {
             jwtParser.parseSignedClaims(token);
             return true;
         } catch (ExpiredJwtException e) {
-            log.debug("Token validation failed: Token is expired", e);
+            log.debug("토큰 시간 만료로 검증 실패", e);
             return false;
         } catch (JwtException e) {
-            log.error("Token validation failed: Invalid token", e);
+            log.error("유효하지 않는 토큰으로 검증 실패", e);
             return false;
         } catch (Exception e) {
             log.error("Token validation failed: Unexpected error", e);
