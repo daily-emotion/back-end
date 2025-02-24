@@ -14,6 +14,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -59,6 +60,10 @@ public class SecurityConfig {
 
         // CORS 설정
         configureCors(http);
+
+        http.securityContext(securityContext -> securityContext
+                .securityContextRepository(new HttpSessionSecurityContextRepository())
+        );
 
         return http.build();
     }
@@ -188,8 +193,9 @@ public class SecurityConfig {
     // 세션 관리 설정 (JWT 사용 → STATELESS)
     private void configureSession(HttpSecurity http) throws Exception {
         http.sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        );
+                session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .maximumSessions(1)
+                        .expiredUrl("/login"));
     }
 
     // 로그아웃 설정
