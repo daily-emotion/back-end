@@ -78,8 +78,8 @@ public class UserService {
         // 안전한 타입 체크 후 처리
         if (principal instanceof CustomOAuth2User customOAuth2User) {
             log.debug("CustomOAuth2User로부터 사용자 정보를 추출합니다: {}",
-                    customOAuth2User.getUsername());
-            return customOAuth2User.getUsername();
+                    customOAuth2User.getName());
+            return customOAuth2User.getName();
         }
 
         // JWT 토큰에서 추출한 사용자 정보 처리
