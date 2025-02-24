@@ -153,7 +153,7 @@ public class SecurityConfig {
                 antMatcher(POST, "/auth/**"),
 
                 // 토큰 관련
-                antMatcher("/token/refresh"),
+                antMatcher("user/token/refresh"),
                 antMatcher("/token"),
 
                 // Health Check
