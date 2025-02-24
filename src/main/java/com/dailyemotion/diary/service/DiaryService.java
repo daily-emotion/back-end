@@ -17,6 +17,7 @@ import com.dailyemotion.tag.service.TagService;
 import com.dailyemotion.user.oAuth2.CustomOAuth2User;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -24,10 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.dailyemotion.common.errorCode.DiaryErrorCode.*;
@@ -35,6 +33,7 @@ import static com.dailyemotion.common.errorCode.TagErrorCode.INVALID_TAG_NAME;
 import static com.dailyemotion.common.errorCode.UserErrorCode.*;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DiaryService {
@@ -141,18 +140,33 @@ public class DiaryService {
 
     // OAuth2 인증된 사용자의 username을 가져오는 메소드
     // OAuth2 인증된 사용자의 username을 가져오는 메소드
-    private static String getCustomOAuth2User() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    private static String getCustomOAuth2User() {{
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null) {
-            throw new UserException(USER_NOT_AUTHORIZED);
-        }
+            if (authentication == null) {
+                log.debug("인증 정보가 없습니다");
+                throw new UserException(USER_NOT_AUTHORIZED);
+            }
 
-        Object principal = authentication.getPrincipal();
+            Object principal = authentication.getPrincipal();
 
-        if (principal instanceof CustomOAuth2User customOAuth2User) {
-            return customOAuth2User.getUsername();
-        } else {
+            // 안전한 타입 체크 후 처리
+            if (principal instanceof CustomOAuth2User customOAuth2User) {
+                log.debug("CustomOAuth2User로부터 사용자 정보를 추출합니다: {}",
+                        customOAuth2User.getUsername());
+                return customOAuth2User.getUsername();
+            }
+
+            // JWT 토큰에서 추출한 사용자 정보 처리
+            if (principal instanceof Map) {
+                log.debug("JWT 토큰으로부터 사용자 정보를 추출합니다");
+                @SuppressWarnings("unchecked")
+                Map<String, Object> principalMap = (Map<String, Object>) principal;
+                return (String) principalMap.get("username");
+            }
+
+            log.debug("지원하지 않는 Principal 타입입니다: {}",
+                    principal != null ? principal.getClass().getName() : "null");
             throw new UserException(USER_NOT_AUTHORIZED);
         }
     }
