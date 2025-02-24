@@ -153,7 +153,6 @@ public class SecurityConfig {
                 antMatcher(POST, "/auth/**"),
 
                 // 토큰 관련
-                antMatcher("user/token/refresh"),
                 antMatcher("/token"),
 
                 // Health Check
@@ -185,7 +184,10 @@ public class SecurityConfig {
                 antMatcher(GET, "/reports/summary/{year}/{month}"),
 
                 // 태그 조회
-                antMatcher(GET, "/tags")
+                antMatcher(GET, "/tags"),
+
+                //리프레쉬토큰 사용
+                antMatcher("/user/token/refresh")
         );
         return requestMatchers.toArray(RequestMatcher[]::new);
     }
