@@ -17,6 +17,7 @@ import com.dailyemotion.tag.service.TagService;
 import com.dailyemotion.user.oAuth2.CustomOAuth2User;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -139,13 +140,21 @@ public class DiaryService {
     }
 
     // OAuth2 인증된 사용자의 username을 가져오는 메소드
+    // OAuth2 인증된 사용자의 username을 가져오는 메소드
     private static String getCustomOAuth2User() {
-        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null) {
             throw new UserException(USER_NOT_AUTHORIZED);
         }
 
-        CustomOAuth2User customOAuth2User = (CustomOAuth2User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return customOAuth2User.getUsername();
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof CustomOAuth2User customOAuth2User) {
+            return customOAuth2User.getUsername();
+        } else {
+            throw new UserException(USER_NOT_AUTHORIZED);
+        }
     }
 
     // 다이어리 생성 시 해당 사용자의 다이어리가 이미 존재하는지 확인하는 메소드

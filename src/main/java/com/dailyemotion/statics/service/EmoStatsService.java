@@ -9,6 +9,7 @@ import com.dailyemotion.domain.enums.Emotion;
 import com.dailyemotion.statics.dto.response.EmoStatsRes;
 import com.dailyemotion.user.oAuth2.CustomOAuth2User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -28,12 +29,19 @@ public class EmoStatsService {
 
     // OAuth2 인증된 사용자의 username을 가져오는 메소드
     private static String getCustomOAuth2User() {
-        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null) {
             throw new UserException(USER_NOT_AUTHORIZED);
         }
 
-        CustomOAuth2User customOAuth2User = (CustomOAuth2User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return customOAuth2User.getUsername();
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof CustomOAuth2User customOAuth2User) {
+            return customOAuth2User.getUsername();
+        } else {
+            throw new UserException(USER_NOT_AUTHORIZED);
+        }
     }
 
     // 월별 감정 통계 조회
