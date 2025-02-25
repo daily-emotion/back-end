@@ -186,6 +186,7 @@ public class SecurityConfig {
 
                 // 사용자 정보
                 antMatcher(GET, "/user/profile"),
+                antMatcher(POST, "/logout"),
 
                 // 통계/리포트
                 antMatcher(GET, "/reports/emotions/{year}/{month}"),

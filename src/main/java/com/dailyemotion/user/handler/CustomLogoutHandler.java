@@ -20,11 +20,9 @@ public class CustomLogoutHandler implements LogoutHandler {
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         // 클라이언트로부터 리프레시 토큰을 받아와서 처리
         String refreshToken = request.getHeader("RefreshToken");
-
         if (refreshToken != null) {
-            // Redis에 리프레시 토큰을 0초 유효기간으로 설정하여 즉시 만료
-            redisTemplate.opsForValue().set(refreshToken, "loggedOut", 1, TimeUnit.SECONDS);
-            // 0은 RuntimeException 발생으로 1로 변경
+            String key = "blacklist:refreshToken:" + refreshToken;
+            redisTemplate.opsForValue().set(key, "loggedOut", 7, TimeUnit.DAYS);
         }
     }
 }
