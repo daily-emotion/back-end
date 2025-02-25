@@ -5,6 +5,7 @@ import com.dailyemotion.user.handler.CustomSuccessHandler;
 import com.dailyemotion.user.jwt.JWTFilter;
 import com.dailyemotion.user.jwt.JWTUtil;
 import com.dailyemotion.user.oAuth2.CustomOAuth2UserService;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -12,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
@@ -67,6 +69,13 @@ public class SecurityConfig {
 
         return http.build();
     }
+
+
+    @PostConstruct
+    public void enableAuthContextPropagation() {
+        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
+    }
+
 
     // ✅ OAuth2 로그인 설정 수정
     private void configureOAuth2(HttpSecurity http) throws Exception {
@@ -177,6 +186,7 @@ public class SecurityConfig {
 
                 // 사용자 정보
                 antMatcher(GET, "/user/profile"),
+                antMatcher(POST, "/logout"),
 
                 // 통계/리포트
                 antMatcher(GET, "/reports/emotions/{year}/{month}"),

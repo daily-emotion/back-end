@@ -12,6 +12,7 @@ import com.dailyemotion.user.oAuth2.CustomOAuth2User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -31,12 +32,20 @@ public class UserService {
 
     private final JWTUtil jwtUtil;
     private final UserRepository userRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
     /**
      * 토큰을 재발급 하는 메소드
      */
     public TokenResponseDTO refreshToken(String refreshToken) {
         // 리프레시 토큰 검증
         if (!jwtUtil.isValidToken(refreshToken)) {
+            throw new UserException(TOKEN_IS_NOT_VALID);
+        }
+
+        // 블랙리스트에 해당 refreshToken이 있다면 토큰 발급 X
+        String blackListKey = "blacklist:refreshToken:" + refreshToken;
+        Boolean isBlacklisted = redisTemplate.hasKey(blackListKey);
+        if (Boolean.TRUE.equals(isBlacklisted)) {
             throw new UserException(TOKEN_IS_NOT_VALID);
         }
 
