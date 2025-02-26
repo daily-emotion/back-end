@@ -1,6 +1,5 @@
 package com.dailyemotion.tag.service;
 
-import com.dailyemotion.common.errorCode.TagErrorCode;
 import com.dailyemotion.common.exception.TagException;
 import com.dailyemotion.diary.dto.request.DiaryReqDto;
 import com.dailyemotion.domain.entity.Diary;
