@@ -162,8 +162,6 @@ public class DiaryService {
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
     }
 
-
-
     // 월 형식이 올바른지 확인하는 메소드
     private void validateDiaryCreation(String month) {
         if (month == null || month.length() != 6) {
