@@ -60,11 +60,7 @@ public class DiaryService {
     // 다이어리 삭제
     public void deleteDiary(LocalDate date) {
         String username = getCustomOAuth2User();
-        Diary diary = diaryRepository.findByUserUsernameAndDate(username, date);
-
-        if (diary == null) {
-            throw new DiaryException(DIARY_NOT_FOUND);
-        }
+        Diary diary = findDiaryorThrow(username, date);
 
         diaryRepository.delete(diary);
     }
@@ -72,11 +68,7 @@ public class DiaryService {
     // 다이어리 조회
     public DiaryResDto getDiary(LocalDate date) {
         String username = getCustomOAuth2User();
-        Diary diary = diaryRepository.findByUserUsernameAndDate(username, date);
-
-        if (diary == null) {
-            throw new DiaryException(DIARY_NOT_FOUND);
-        }
+        Diary diary = findDiaryorThrow(username, date);
 
         // 다이어리 ID에 해당하는 태그를 조회하고 태그 이름만 리스트로 저장해서 반환
         List<String> resTags = Optional.ofNullable(tagRepository.findTagByDiary_DiaryId(diary.getDiaryId()))
@@ -91,11 +83,7 @@ public class DiaryService {
     @Transactional
     public DiaryResDto updateDiary(LocalDate date, DiaryReqDto diaryReqDto) {
         String username = getCustomOAuth2User();
-        Diary diary = diaryRepository.findByUserUsernameAndDate(username, date);
-
-        if (diary == null) {
-            throw new DiaryException(DIARY_NOT_FOUND);
-        }
+        Diary diary = findDiaryorThrow(username, date);
 
         Optional<User> user = userRepository.findByUsername(username);
         Diary updatedDiary = from(diaryReqDto, user.orElseThrow(() -> new UserException(USER_NOT_FOUND)), date);
@@ -139,7 +127,6 @@ public class DiaryService {
     }
 
     // OAuth2 인증된 사용자의 username을 가져오는 메소드
-    // OAuth2 인증된 사용자의 username을 가져오는 메소드
     private static String getCustomOAuth2User() {{
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -176,6 +163,17 @@ public class DiaryService {
         if (diaryRepository.existsByUserUsernameAndDate(username, date)) {
             throw new DiaryException(DIARY_ALREADY_EXIST);
         }
+    }
+
+    //해당 다이어리의 유무 판단 메소드
+
+    private Diary findDiaryorThrow(String username, LocalDate date) {
+        Diary diary = diaryRepository.findByUserUsernameAndDate(username, date);
+
+        if (diary == null) {
+            throw new DiaryException(DIARY_NOT_FOUND);
+        }
+        return diary;
     }
 
     // ReqDto를 Diary 엔티티로 변환하는 메소드
