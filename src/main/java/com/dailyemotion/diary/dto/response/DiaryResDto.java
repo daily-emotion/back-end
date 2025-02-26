@@ -21,8 +21,7 @@ public class DiaryResDto {
     private List<String> tag;
 
     private String imageUrl;
-
-    public static DiaryResDto from(Diary diary, List<String> tags) {
+    public static DiaryResDto fromDiary(Diary diary, List<String> tags) {
         return DiaryResDto.builder()
                 .emotion(diary.getEmotion().name())
                 .content(diary.getContent())
