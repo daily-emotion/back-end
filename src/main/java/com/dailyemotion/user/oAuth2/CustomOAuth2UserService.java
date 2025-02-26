@@ -93,7 +93,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         userRepository.save(user);
 
         UserResDto userResponseDto = createUserResponseDto(username, oAuth2Response, socialType);
-        log.debug("Created new user: {}", userResponseDto);
+        log.debug("유저 생성{}", userResponseDto);
 
         return new CustomOAuth2User(userResponseDto);
     }
@@ -113,7 +113,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         userRepository.save(user);
 
         UserResDto userResponseDto = createUserResponseDto(user.getUsername(), oAuth2Response, user.getSocialType());
-        log.debug("Updated existing user: {}", userResponseDto);
+        log.debug("업데이트된 사용자 정보 담기", userResponseDto);
 
         return new CustomOAuth2User(userResponseDto);
     }
