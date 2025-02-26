@@ -6,15 +6,16 @@ import com.dailyemotion.common.exception.UserException;
 import com.dailyemotion.diary.dto.request.DiaryReqDto;
 import com.dailyemotion.diary.dto.response.DiaryGetResDto;
 import com.dailyemotion.diary.dto.response.DiaryResDto;
+import com.dailyemotion.diary.repository.DiaryRepository;
 import com.dailyemotion.domain.entity.Diary;
 import com.dailyemotion.domain.entity.Tag;
 import com.dailyemotion.domain.entity.User;
 import com.dailyemotion.domain.enums.Emotion;
-import com.dailyemotion.diary.repository.DiaryRepository;
 import com.dailyemotion.tag.repository.TagRepository;
-import com.dailyemotion.user.repository.UserRepository;
 import com.dailyemotion.tag.service.TagService;
 import com.dailyemotion.user.oAuth2.CustomOAuth2User;
+import com.dailyemotion.user.repository.UserRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +31,8 @@ import java.util.stream.Collectors;
 
 import static com.dailyemotion.common.errorCode.DiaryErrorCode.*;
 import static com.dailyemotion.common.errorCode.TagErrorCode.INVALID_TAG_NAME;
-import static com.dailyemotion.common.errorCode.UserErrorCode.*;
+import static com.dailyemotion.common.errorCode.UserErrorCode.USER_NOT_AUTHORIZED;
+import static com.dailyemotion.common.errorCode.UserErrorCode.USER_NOT_FOUND;
 
 
 @Slf4j
@@ -43,6 +45,7 @@ public class DiaryService {
     private final TagService tagService;
     private final TagRepository tagRepository;
     private final ImageService imageService;
+    private final DiaryCacheService diaryCacheService;
 
     // 다이어리 생성
     public DiaryResDto createDiary(LocalDate date, DiaryReqDto diaryReqDto) {
@@ -119,6 +122,14 @@ public class DiaryService {
     public List<DiaryGetResDto> getMonthlyDiary(String month) {
         invalidMonth(month);
         String username = getCustomOAuth2User();
+        String cacheKey = "cache:getMonthlyDiaries:" + username + ":" + month;
+
+        // Redis에서 일치하는 데이터를 찾고 있으면 반환
+        // 즉, 캐싱된 데이터가 있다면 이 밑의 로직으로 안내려가고 메소드가 종료된다.
+        List<DiaryGetResDto> cachedData = diaryCacheService.getCache(cacheKey, new TypeReference<List<DiaryGetResDto>>() {});
+        if (cachedData != null) {
+            return cachedData;
+        }
 
         LocalDate targetMonthStart = LocalDate.parse(month + "01", DateTimeFormatter.ofPattern("yyyyMMdd"));
         LocalDate startDate = targetMonthStart.minusMonths(1).withDayOfMonth(1);
@@ -133,12 +144,16 @@ public class DiaryService {
             return Collections.emptyList();
         }
 
-        return diaries.stream()
+        List<DiaryGetResDto> diaryGetResDto = diaries.stream()
                 .map(DiaryGetResDto::from)
                 .collect(Collectors.toList());
+
+        // 캐싱된 데이터가 없는 경우 캐시에 저장
+        diaryCacheService.setCache(cacheKey, diaryGetResDto);
+
+        return diaryGetResDto;
     }
 
-    // OAuth2 인증된 사용자의 username을 가져오는 메소드
     // OAuth2 인증된 사용자의 username을 가져오는 메소드
     private static String getCustomOAuth2User() {{
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
