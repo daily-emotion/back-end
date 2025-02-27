@@ -6,14 +6,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.List;
 
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class DiaryGetResDto implements Serializable {
+public class DiaryGetResDto {
 
     private String emotion;
 
