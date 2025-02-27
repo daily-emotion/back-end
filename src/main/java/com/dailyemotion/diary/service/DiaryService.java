@@ -14,6 +14,7 @@ import com.dailyemotion.domain.entity.User;
 import com.dailyemotion.tag.repository.TagRepository;
 import com.dailyemotion.tag.service.TagService;
 import com.dailyemotion.user.repository.UserRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +44,7 @@ public class DiaryService {
     private final TagService tagService;
     private final TagRepository tagRepository;
     private final ImageService imageService;
+    private final DiaryCacheService diaryCacheService;
 
     // 다이어리 생성
     public DiaryResDto createDiary(LocalDate date, DiaryReqDto diaryReqDto) {
@@ -106,6 +108,13 @@ public class DiaryService {
     public List<DiaryGetResDto> getMonthlyDiary(String month) {
         validateDiaryCreation(month);
         String username = SecurityUtils.getCustomOAuth2User();
+        String cacheKey = "cache:getMonthlyDiaries:" + username + ":" + month;
+
+        // 캐시가 있으면 반환
+        List<DiaryGetResDto> cachedData = diaryCacheService.getCache(cacheKey, new TypeReference<List<DiaryGetResDto>>() {});
+        if (cachedData != null) {
+            return cachedData;
+        }
 
         LocalDate targetMonthStart = LocalDate.parse(month + "01", DateTimeFormatter.ofPattern("yyyyMMdd"));
         LocalDate startDate = targetMonthStart.minusMonths(1).withDayOfMonth(1);
@@ -120,12 +129,15 @@ public class DiaryService {
             return Collections.emptyList();
         }
 
-        return diaries.stream()
+        List<DiaryGetResDto> diaryGetResDto = diaries.stream()
                 .map(DiaryGetResDto::from)
                 .collect(Collectors.toList());
+
+        // 캐시에 저장
+        diaryCacheService.setCache(cacheKey, diaryGetResDto);
+
+        return diaryGetResDto;
     }
-
-
 
     // 다이어리 생성 시 해당 사용자의 다이어리가 이미 존재하는지 확인하는 메소드
     private void validateDiaryCreation(String username, LocalDate date) {
@@ -149,8 +161,6 @@ public class DiaryService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
     }
-
-
 
     // 월 형식이 올바른지 확인하는 메소드
     private void validateDiaryCreation(String month) {
