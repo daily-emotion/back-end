@@ -2,8 +2,6 @@ package com.dailyemotion.user.service;
 
 import com.dailyemotion.common.errorCode.UserErrorCode;
 import com.dailyemotion.common.exception.UserException;
-import com.dailyemotion.common.repository.RefreshTokenRepository;
-import com.dailyemotion.domain.entity.RefreshToken;
 import com.dailyemotion.domain.entity.User;
 import com.dailyemotion.domain.enums.Role;
 import com.dailyemotion.user.repository.UserRepository;
@@ -33,17 +31,7 @@ public class UserService {
 
     private final JWTUtil jwtUtil;
     private final UserRepository userRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
 
-
-    /**
-     * 리프레시 토큰을 저장하는 메소드
-     */
-    public void saveRefreshToken(String username, String refreshToken) {
-        RefreshToken token = new RefreshToken(refreshToken, username);
-        refreshTokenRepository.save(token);
-        log.info("리프레시 토큰 저장 완료: {}", username);
-    }
 
 
     /**
