@@ -1,5 +1,7 @@
 package com.dailyemotion.user.handler;
 
+import com.dailyemotion.common.repository.RefreshTokenRepository;
+import com.dailyemotion.domain.entity.RefreshToken;
 import com.dailyemotion.domain.enums.Role;
 import com.dailyemotion.user.jwt.JWTUtil;
 import com.dailyemotion.user.oAuth2.CustomOAuth2User;
@@ -11,7 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -25,6 +26,7 @@ import java.io.IOException;
 @Component
 public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final JWTUtil jwtUtil;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Value("${jwt.accessExpiration}")
     private Long accessTokenExpiration;
@@ -50,6 +52,9 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String accessToken = jwtUtil.createAccessToken(username, name, Role.USER, accessTokenExpiration);
         String refreshToken = jwtUtil.createRefreshToken(username, refreshTokenExpiration);
 
+        saveRefreshToken(username, refreshToken);
+
+
         // 3. 세션에 SecurityContext 저장
         HttpSession session = request.getSession();
         session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
@@ -60,5 +65,14 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 .build().toUriString();
 
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
+
+    }
+
+    /**
+     * 리프레시 토큰을 저장하는 메소드
+     */
+    public void saveRefreshToken(String username, String refreshToken) {
+        RefreshToken token = new RefreshToken(username,refreshToken);
+        refreshTokenRepository.save(token);
     }
 }
