@@ -2,6 +2,8 @@ package com.dailyemotion.user.service;
 
 import com.dailyemotion.common.errorCode.UserErrorCode;
 import com.dailyemotion.common.exception.UserException;
+import com.dailyemotion.common.repository.RefreshTokenRepository;
+import com.dailyemotion.domain.entity.RefreshToken;
 import com.dailyemotion.domain.entity.User;
 import com.dailyemotion.domain.enums.Role;
 import com.dailyemotion.user.repository.UserRepository;
@@ -12,7 +14,6 @@ import com.dailyemotion.user.oAuth2.CustomOAuth2User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -32,20 +33,25 @@ public class UserService {
 
     private final JWTUtil jwtUtil;
     private final UserRepository userRepository;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RefreshTokenRepository refreshTokenRepository;
+
+
+    /**
+     * 리프레시 토큰을 저장하는 메소드
+     */
+    public void saveRefreshToken(String username, String refreshToken) {
+        RefreshToken token = new RefreshToken(refreshToken, username);
+        refreshTokenRepository.save(token);
+        log.info("리프레시 토큰 저장 완료: {}", username);
+    }
+
+
     /**
      * 토큰을 재발급 하는 메소드
      */
     public TokenResponseDTO refreshToken(String refreshToken) {
         // 리프레시 토큰 검증
         if (!jwtUtil.isValidToken(refreshToken)) {
-            throw new UserException(TOKEN_IS_NOT_VALID);
-        }
-
-        // 블랙리스트에 해당 refreshToken이 있다면 토큰 발급 X
-        String blackListKey = "blacklist:refreshToken:" + refreshToken;
-        Boolean isBlacklisted = redisTemplate.hasKey(blackListKey);
-        if (Boolean.TRUE.equals(isBlacklisted)) {
             throw new UserException(TOKEN_IS_NOT_VALID);
         }
 
@@ -63,15 +69,14 @@ public class UserService {
                 Role.USER,
                 accessTokenExpiration
         );
-        return new TokenResponseDTO(newAccessToken);
+        return new TokenResponseDTO(newAccessToken,refreshToken);
     }
 
     public UserInfoResponseDTO getUserInfo() {
         String name = getCustomOAuth2User();
-        UserInfoResponseDTO responseDTO = UserInfoResponseDTO.builder()
+        return UserInfoResponseDTO.builder()
                 .name(name)
                 .build();
-        return responseDTO;
     }
 
     private static String getCustomOAuth2User() {
