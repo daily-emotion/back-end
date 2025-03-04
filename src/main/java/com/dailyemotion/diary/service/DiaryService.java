@@ -17,7 +17,6 @@ import com.dailyemotion.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -104,10 +103,9 @@ public class DiaryService {
     }
 
     // 월별 다이어리 조회
-    @Cacheable(value = "monthlyDiary", key = "#month + ':' + #username")
-    public List<DiaryGetResDto> getMonthlyDiary(String month,String username) {
+    public List<DiaryGetResDto> getMonthlyDiary(String month) {
         validateDiaryCreation(month);
-
+        String username = SecurityUtilsUsername.getCustomOAuth2UserName();
 
         LocalDate targetMonthStart = LocalDate.parse(month + "01", DateTimeFormatter.ofPattern("yyyyMMdd"));
         LocalDate startDate = targetMonthStart.minusMonths(1).withDayOfMonth(1);
