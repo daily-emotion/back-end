@@ -1,5 +1,6 @@
 package com.dailyemotion.diary.controller;
 
+import com.dailyemotion.common.utill.SecurityUtilsUsername;
 import com.dailyemotion.diary.dto.request.DiaryReqDto;
 import com.dailyemotion.diary.dto.response.DiaryGetResDto;
 import com.dailyemotion.diary.dto.response.DiaryResDto;
@@ -96,7 +97,8 @@ public class DiaryController {
     public ResponseEntity<List<DiaryGetResDto>> getMonthlyDiary(
             @Parameter(description = "조회할 월 (YYYYMM)", example = "202401", required = true)
             @PathVariable(name = "month") String month) {
-        List<DiaryGetResDto> diaryGetResDto = diaryService.getMonthlyDiary(month);
+        String username = SecurityUtilsUsername.getCustomOAuth2UserName();
+        List<DiaryGetResDto> diaryGetResDto = diaryService.getMonthlyDiary(month,username);
         return ResponseEntity.status(HttpStatus.OK).body(diaryGetResDto);
     }
 
