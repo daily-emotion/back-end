@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import static com.dailyemotion.common.utill.SecurityUtilsName.getCustomOAuth2Name;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/user")
@@ -42,9 +44,11 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "프로필 조회 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
+
     @GetMapping("/profile")
     public ResponseEntity<UserInfoResponseDTO> getUserProfile() {
-        UserInfoResponseDTO userInfo = userService.getUserInfo();
+        String name = getCustomOAuth2Name(); // 현재 사용자 이름 가져오기
+        UserInfoResponseDTO userInfo = userService.getUserInfo(name);
         return ResponseEntity.ok(userInfo);
     }
 }
