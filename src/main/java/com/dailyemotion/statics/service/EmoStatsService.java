@@ -1,7 +1,7 @@
 package com.dailyemotion.statics.service;
 
 
-import com.dailyemotion.common.utill.SecurityUtils;
+import com.dailyemotion.common.utill.SecurityUtilsUsername;
 import com.dailyemotion.diary.repository.DiaryRepository;
 import com.dailyemotion.domain.entity.Diary;
 import com.dailyemotion.domain.enums.Emotion;
@@ -23,7 +23,7 @@ public class EmoStatsService {
 
     // 월별 감정 통계 조회
     public EmoStatsRes getMonthlyStatistics(int year, int month) {
-        String username = SecurityUtils.getCustomOAuth2User();
+        String username = SecurityUtilsUsername.getCustomOAuth2UserName();
         LocalDate startDate = LocalDate.of(year, month, 1);
         LocalDate endDate = startDate.plusMonths(1).minusDays(1);
 

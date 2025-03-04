@@ -3,7 +3,7 @@ package com.dailyemotion.diary.service;
 import com.dailyemotion.common.exception.DiaryException;
 import com.dailyemotion.common.exception.TagException;
 import com.dailyemotion.common.exception.UserException;
-import com.dailyemotion.common.utill.SecurityUtils;
+import com.dailyemotion.common.utill.SecurityUtilsUsername;
 import com.dailyemotion.diary.dto.request.DiaryReqDto;
 import com.dailyemotion.diary.dto.response.DiaryGetResDto;
 import com.dailyemotion.diary.dto.response.DiaryResDto;
@@ -46,7 +46,7 @@ public class DiaryService {
 
     // 다이어리 생성
     public DiaryResDto createDiary(LocalDate date, DiaryReqDto diaryReqDto) {
-        String username = SecurityUtils.getCustomOAuth2User();
+        String username = SecurityUtilsUsername.getCustomOAuth2UserName();
         validateDiaryCreation(username, date);
 
         User user = findUserOrThrow(username);
@@ -59,7 +59,7 @@ public class DiaryService {
 
     // 다이어리 삭제
     public void deleteDiary(LocalDate date) {
-        String username = SecurityUtils.getCustomOAuth2User();
+        String username = SecurityUtilsUsername.getCustomOAuth2UserName();
         Diary diary = findDiaryOrThrow(username, date);
 
         diaryRepository.delete(diary);
@@ -67,7 +67,7 @@ public class DiaryService {
 
     // 다이어리 조회
     public DiaryResDto getDiary(LocalDate date) {
-        String username = SecurityUtils.getCustomOAuth2User();
+        String username = SecurityUtilsUsername.getCustomOAuth2UserName();
         Diary diary = findDiaryOrThrow(username, date);
 
         // 다이어리 ID에 해당하는 태그를 조회하고 태그 이름만 리스트로 저장해서 반환
@@ -82,7 +82,7 @@ public class DiaryService {
     // 다이어리 수정
     @Transactional
     public DiaryResDto updateDiary(LocalDate date, DiaryReqDto diaryReqDto) {
-        String username = SecurityUtils.getCustomOAuth2User();
+        String username = SecurityUtilsUsername.getCustomOAuth2UserName();
         Diary diary = findDiaryOrThrow(username, date);
 
         User user = findUserOrThrow(username);
@@ -105,7 +105,7 @@ public class DiaryService {
     // 월별 다이어리 조회
     public List<DiaryGetResDto> getMonthlyDiary(String month) {
         validateDiaryCreation(month);
-        String username = SecurityUtils.getCustomOAuth2User();
+        String username = SecurityUtilsUsername.getCustomOAuth2UserName();
 
         LocalDate targetMonthStart = LocalDate.parse(month + "01", DateTimeFormatter.ofPattern("yyyyMMdd"));
         LocalDate startDate = targetMonthStart.minusMonths(1).withDayOfMonth(1);

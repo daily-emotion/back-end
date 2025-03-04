@@ -12,10 +12,10 @@ import static com.dailyemotion.common.errorCode.UserErrorCode.USER_NOT_AUTHORIZE
 
 
 @Slf4j
-public class SecurityUtils {
+public class SecurityUtilsUsername {
 
     // OAuth2 인증된 사용자의 username을 가져오는 메소드
-    public static String getCustomOAuth2User() {
+    public static String getCustomOAuth2UserName() {
         {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
